@@ -15,7 +15,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-from routers import reports, analysis, consultation, admin, stations, webhook
+from routers import reports, analysis, consultation, admin, stations, webhook, reviews, referrals, users
 
 app.include_router(reports.router, prefix="/api/reports", tags=["Raporlar"])
 app.include_router(analysis.router, prefix="/api/analysis", tags=["Analiz"])
@@ -23,6 +23,9 @@ app.include_router(consultation.router, prefix="/api/consultation", tags=["Danı
 app.include_router(admin.router, prefix="/api/admin", tags=["Yönetim"])
 app.include_router(stations.router, prefix="/api/stations", tags=["İstasyonlar"])
 app.include_router(webhook.router, prefix="/api/webhook", tags=["Webhook"])
+app.include_router(reviews.router, prefix="/api/reviews", tags=["Yorumlar"])
+app.include_router(referrals.router, prefix="/api/referrals", tags=["Referans"])
+app.include_router(users.router, prefix="/api/users", tags=["Kullanıcılar"])
 
 @app.get("/")
 def root():
