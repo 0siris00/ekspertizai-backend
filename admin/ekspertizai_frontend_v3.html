@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EkspertizAI</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0d0d0d;--surface:#161616;--surface2:#1e1e1e;--border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);--text:#f0ede8;--muted:#888;--accent:#e8622a;--accent2:#f0a060;--green:#4caf7d;--yellow:#f5c842;--red:#e85555;--radius:14px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.screen{display:none}.screen.active{display:block}
+
+nav{padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:100}
+.logo{font-family:'Syne',sans-serif;font-weight:700;font-size:17px;letter-spacing:-.5px;cursor:pointer}
+.logo span{color:var(--accent)}
+.nav-btn{background:none;border:1px solid var(--border2);color:var(--muted);font-size:12px;padding:5px 12px;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:.2s}
+.nav-btn:hover{color:var(--text);border-color:rgba(255,255,255,.3)}
+.nav-btn.active{background:rgba(232,98,42,.12);color:var(--accent2);border-color:rgba(232,98,42,.3)}
+
+.hero{max-width:780px;margin:0 auto;padding:3rem 1.5rem 2rem;text-align:center}
+.hero h1{font-family:'Syne',sans-serif;font-size:clamp(26px,5vw,44px);font-weight:700;line-height:1.15;letter-spacing:-1px;margin-bottom:.8rem}
+.hero h1 em{color:var(--accent);font-style:normal}
+.hero p{font-size:15px;color:var(--muted);line-height:1.7;max-width:500px;margin:0 auto}
+
+.upload-grid{max-width:640px;margin:2rem auto 1rem;padding:0 1.5rem;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:520px){.upload-grid{grid-template-columns:1fr}}
+.upload-card{background:var(--surface);border:1.5px dashed var(--border2);border-radius:var(--radius);padding:1.75rem 1.25rem;cursor:pointer;transition:.2s;text-align:center}
+.upload-card:hover{border-color:var(--accent);background:rgba(232,98,42,.04)}
+.upload-card-icon{font-size:32px;margin-bottom:.75rem;display:block}
+.upload-card h3{font-family:'Syne',sans-serif;font-size:15px;font-weight:600;margin-bottom:.3rem}
+.upload-card p{font-size:12px;color:var(--muted);line-height:1.5}
+.free-tag{display:inline-block;margin-top:.6rem;font-size:10px;background:rgba(76,175,125,.15);color:var(--green);border:1px solid rgba(76,175,125,.25);padding:2px 8px;border-radius:99px;letter-spacing:.3px}
+.demo-row{text-align:center;font-size:12px;color:#555;margin:.25rem 0 1rem;padding:0 1.5rem}
+.demo-row span{color:var(--accent);cursor:pointer;text-decoration:underline}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;align-items:center;justify-content:center;padding:1.5rem}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:18px;padding:2rem 1.75rem;max-width:380px;width:100%;text-align:center}
+.modal-icon{font-size:36px;margin-bottom:.75rem}
+.modal h2{font-family:'Syne',sans-serif;font-size:20px;font-weight:700;margin-bottom:.5rem}
+.modal p{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:1.5rem}
+.modal-btns{display:flex;flex-direction:column;gap:8px}
+.btn-modal-primary{background:var(--accent);color:#fff;border:none;padding:13px;border-radius:10px;font-family:'Syne',sans-serif;font-size:14px;font-weight:600;cursor:pointer}
+.btn-modal-primary:hover{opacity:.88}
+.btn-modal-sec{background:transparent;color:var(--muted);border:1px solid var(--border2);padding:11px;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer}
+.btn-modal-sec:hover{color:var(--text)}
+.old-report-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.old-report-row:last-of-type{border-bottom:none}
+.old-verdict{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;flex-shrink:0}
+.ov-B{background:rgba(245,200,66,.15);color:var(--yellow)}
+.ov-C{background:rgba(232,85,85,.15);color:var(--red)}
+.btn-buy-old{background:var(--accent);color:#fff;border:none;font-size:11px;padding:5px 12px;border-radius:7px;cursor:pointer;font-family:'DM Sans',sans-serif}
+
+/* LOADING */
+.loading-state{display:none;text-align:center;padding:4rem 2rem;max-width:560px;margin:0 auto}
+.loading-state.active{display:block}
+.spinner{width:38px;height:38px;border:2px solid var(--border2);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 1.5rem}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-steps{list-style:none;text-align:left;max-width:280px;margin:0 auto}
+.loading-steps li{font-size:13px;color:var(--muted);padding:6px 0;display:flex;align-items:center;gap:10px;transition:color .3s}
+.loading-steps li.step-active{color:var(--text)}
+.loading-steps li.step-done{color:var(--green)}
+.step-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+
+/* RESULT */
+.result-state{display:none;max-width:720px;margin:0 auto;padding:0 1.5rem 5rem}
+.result-state.active{display:block}
+
+/* İSTASYON KARTI */
+.section-title-sm{font-family:'Syne',sans-serif;font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;margin-bottom:.75rem}
+.station-top-card{background:var(--surface);border:1px solid rgba(232,98,42,.35);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.5rem}
+.station-top-inner{display:flex;align-items:center;gap:14px}
+.station-logo{width:48px;height:48px;border-radius:10px;background:rgba(232,98,42,.15);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:16px;color:var(--accent2);flex-shrink:0}
+.station-scores{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
+.score-label-sm{font-size:10px;color:var(--muted);text-align:right}
+.score-val.ours{color:var(--accent2);font-family:'Syne',sans-serif;font-size:14px;font-weight:700}
+.score-val.google{color:#4285f4;font-family:'Syne',sans-serif;font-size:14px;font-weight:700}
+.score-stars{font-size:11px;color:var(--yellow);letter-spacing:-1px}
+.station-bottom{margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--border);display:flex;gap:8px}
+.stat-pill{flex:1;background:var(--surface2);border-radius:8px;padding:6px 10px;text-align:center}
+.stat-pill-num{font-family:'Syne',sans-serif;font-size:15px;font-weight:700}
+.stat-pill-label{font-size:10px;color:var(--muted);margin-top:1px}
+
+.result-header{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap}
+.vehicle-info h2{font-family:'Syne',sans-serif;font-size:21px;font-weight:700;letter-spacing:-.5px}
+.vehicle-info p{font-size:13px;color:var(--muted);margin-top:3px}
+.verdict-badge-big{padding:9px 18px;border-radius:var(--radius);font-family:'Syne',sans-serif;font-weight:700;font-size:18px;flex-shrink:0}
+.vb-A{background:rgba(76,175,125,.15);color:var(--green);border:1px solid rgba(76,175,125,.3)}
+.vb-B{background:rgba(245,200,66,.12);color:var(--yellow);border:1px solid rgba(245,200,66,.3)}
+.vb-C{background:rgba(232,85,85,.12);color:var(--red);border:1px solid rgba(232,85,85,.3)}
+.summary-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.5rem;font-size:14px;line-height:1.7;color:#d4d0ca}
+.categories{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.5rem}
+@media(max-width:480px){.categories{grid-template-columns:1fr}}
+.cat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem}
+.cat-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem}
+.cat-title{font-family:'Syne',sans-serif;font-size:12px;font-weight:600;letter-spacing:.3px}
+.cat-score{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700}
+.sg{background:rgba(76,175,125,.2);color:var(--green)}
+.sy{background:rgba(245,200,66,.2);color:var(--yellow)}
+.sr{background:rgba(232,85,85,.2);color:var(--red)}
+.cat-findings{list-style:none;display:flex;flex-direction:column;gap:5px}
+.cat-findings li{font-size:12px;color:var(--muted);display:flex;align-items:flex-start;gap:7px;line-height:1.5}
+.find-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.cost-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.5rem}
+.cost-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px}
+.cost-row:last-child{border-bottom:none}
+.term{border-bottom:1px dashed rgba(232,98,42,.5);color:var(--accent2);cursor:help;position:relative}
+.term-tip{display:none;position:absolute;bottom:125%;left:50%;transform:translateX(-50%);background:#2a2a2a;border:1px solid var(--border2);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--text);z-index:10;width:200px;white-space:normal;line-height:1.5}
+.term:hover .term-tip{display:block}
+.service-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem 1.25rem;margin-bottom:10px;display:flex;align-items:center;gap:12px}
+.service-icon{width:40px;height:40px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.service-title{font-size:14px;font-weight:500;margin-bottom:1px}
+.service-desc{font-size:12px;color:var(--muted)}
+.price-tag{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--accent2);text-align:right}
+.price-tag small{display:block;font-size:10px;color:var(--muted);font-weight:400}
+.btn-buy{margin-top:3px;background:var(--accent);color:#fff;border:none;font-size:11px;padding:5px 12px;border-radius:7px;cursor:pointer;font-family:'DM Sans',sans-serif}
+.review-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem 1.5rem;margin-bottom:1.5rem}
+.stars-input{display:flex;gap:6px;margin:.5rem 0 .75rem}
+.star-btn{font-size:22px;cursor:pointer;color:var(--border2);transition:.15s;background:none;border:none;padding:0}
+.star-btn.active{color:var(--yellow)}
+textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:10px;padding:10px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;resize:none;line-height:1.6;margin-bottom:.75rem}
+.reward-note{font-size:11px;color:var(--green);background:rgba(76,175,125,.1);border:1px solid rgba(76,175,125,.2);border-radius:8px;padding:6px 10px;margin-bottom:.75rem}
+.btn-submit{width:100%;background:var(--accent);color:#fff;border:none;padding:12px;border-radius:10px;font-family:'Syne',sans-serif;font-size:14px;font-weight:600;cursor:pointer}
+.reset-btn{display:block;margin:1.5rem auto 0;background:transparent;color:var(--muted);border:1px solid var(--border2);padding:10px 24px;border-radius:var(--radius);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer}
+.reset-btn:hover{color:var(--text);background:var(--surface)}
+.disclaimer{font-size:12px;color:#555;line-height:1.6;text-align:center;padding:1rem;border-top:1px solid var(--border);margin-top:1rem}
+
+/* ARAÇ ANALİZ */
+.arac-result{max-width:720px;margin:0 auto;padding:0 1.5rem 5rem}
+.arac-result.active{display:block}
+
+/* PROFIL */
+.profile-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem;margin-bottom:1rem}
+.avatar{width:52px;height:52px;border-radius:50%;background:rgba(232,98,42,.2);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:20px;color:var(--accent2)}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.stat-box{background:var(--surface2);border-radius:10px;padding:.75rem;text-align:center}
+.stat-num{font-family:'Syne',sans-serif;font-size:20px;font-weight:700}
+.stat-label{font-size:11px;color:var(--muted);margin-top:2px}
+.referral-card{background:linear-gradient(135deg,rgba(232,98,42,.12),rgba(240,160,96,.08));border:1px solid rgba(232,98,42,.3);border-radius:var(--radius);padding:1.5rem;margin-bottom:1rem}
+.referral-code{background:var(--surface);border:1px solid var(--border2);border-radius:8px;padding:.75rem 1rem;font-family:'Syne',sans-serif;font-size:18px;font-weight:700;letter-spacing:2px;color:var(--accent2);text-align:center;margin-bottom:.75rem}
+.progress-bar{height:6px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-top:4px}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:99px}
+.btn-share{width:100%;background:var(--accent);color:#fff;border:none;padding:11px;border-radius:10px;font-family:'Syne',sans-serif;font-size:14px;font-weight:600;cursor:pointer}
+.report-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:8px;display:flex;align-items:center;gap:12px;cursor:pointer}
+.verdict-dot{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:15px;flex-shrink:0}
+.vd-A{background:rgba(76,175,125,.2);color:var(--green)}
+.vd-B{background:rgba(245,200,66,.15);color:var(--yellow)}
+.prize-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem 1.25rem;margin-bottom:8px;display:flex;align-items:center;gap:12px}
+.prize-badge{font-size:11px;background:rgba(76,175,125,.15);color:var(--green);border:1px solid rgba(76,175,125,.25);padding:3px 9px;border-radius:99px}
+.prize-badge.used{background:var(--surface2);color:var(--muted);border-color:var(--border)}
+
+/* STATION GRID */
+.station-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.5rem}
+@media(max-width:480px){.station-grid{grid-template-columns:1fr}}
+.station-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem}
+.station-card.featured{border-color:rgba(232,98,42,.4);background:rgba(232,98,42,.04)}
+.station-logo-sm{width:34px;height:34px;border-radius:8px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--accent2);flex-shrink:0}
+.featured-pill{font-size:10px;background:rgba(232,98,42,.2);color:var(--accent2);border:1px solid rgba(232,98,42,.3);padding:2px 7px;border-radius:99px}
+
+.bnav{position:fixed;bottom:0;left:0;right:0;background:rgba(13,13,13,.95);border-top:1px solid var(--border);display:flex;padding:8px 0 16px;backdrop-filter:blur(10px);z-index:200}
+.bnav-item{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:6px 0}
+.bnav-item span{font-size:10px;color:var(--muted)}
+.bnav-icon{font-size:18px}
+.bnav-item.active span{color:var(--accent2)}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo" onclick="navTab('home')">Ekspertiz<span>AI</span></div>
+  <div style="display:flex;gap:8px">
+    <button class="nav-btn active" id="nb-home" onclick="navTab('home')">Ana Sayfa</button>
+    <button class="nav-btn" id="nb-profil" onclick="navTab('profil')">Profilim</button>
+  </div>
+</nav>
+
+<!-- KAYIT MODAL -->
+<div class="modal-overlay" id="modal-kayit">
+  <div class="modal">
+    <div class="modal-icon">🔐</div>
+    <h2>Hızlı Kayıt Gerekli</h2>
+    <p>İsim, soyisim ve telefon numaranı gir, OTP ile doğrula. Şifre yok, hesap yok.</p>
+    <div class="modal-btns">
+      <button class="btn-modal-primary" onclick="closeModal('modal-kayit');startCurrentAction()">Kayıt Ol — 10 Saniye</button>
+      <button class="btn-modal-sec" onclick="closeModal('modal-kayit')">Şimdi Değil</button>
+    </div>
+  </div>
+</div>
+
+<!-- GEÇMİŞ RAPOR MODAL -->
+<div class="modal-overlay" id="modal-gecmis">
+  <div class="modal" style="text-align:left">
+    <div style="font-size:11px;font-weight:600;color:var(--accent2);letter-spacing:.5px;margin-bottom:.5rem">🔔 GEÇMİŞ RAPOR BULUNDU</div>
+    <div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:700;margin-bottom:.4rem">Bu araç için 2 rapor var</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:1rem">16 ABD 176 plakalı araç daha önce ekspertize götürülmüş.</div>
+    <div class="old-report-row">
+      <div class="old-verdict ov-B">B</div>
+      <div style="flex:1;font-size:12px;color:var(--muted)"><strong style="color:var(--text);display:block;font-size:13px">Otorapor · 14 Mart 2026</strong>142.300 km · B Tipi</div>
+      <button class="btn-buy-old">79 ₺</button>
+    </div>
+    <div class="old-report-row">
+      <div class="old-verdict ov-C">C</div>
+      <div style="flex:1;font-size:12px;color:var(--muted)"><strong style="color:var(--text);display:block;font-size:13px">Dynobil · 8 Ocak 2026</strong>138.900 km · C Tipi</div>
+      <button class="btn-buy-old">79 ₺</button>
+    </div>
+    <div style="margin-top:1rem">
+      <button class="btn-modal-primary" onclick="closeModal('modal-gecmis')">Tamam, Devam Et</button>
+    </div>
+  </div>
+</div>
+
+<!-- ANA SAYFA -->
+<div class="screen active" id="screen-home">
+  <div class="hero">
+    <h1>Araç almadan önce<br><em>gerçeği</em> öğren</h1>
+    <p>İlanı analiz et veya ekspertiz raporunu yükle — teknik jargon yok, sadece bilmen gerekenler.</p>
+  </div>
+  <div class="upload-grid">
+    <div class="upload-card" onclick="requireLogin('arac')">
+      <span class="upload-card-icon">🔍</span>
+      <h3>Aracı Analiz Et</h3>
+      <p>İlan linki veya fotoğrafı ile kronik sorunları, fiyat analizi ve satıcı sorularını öğren</p>
+      <span class="free-tag">ÜCRETSİZ</span>
+    </div>
+    <div class="upload-card" onclick="requireLogin('rapor')">
+      <span class="upload-card-icon">📄</span>
+      <h3>Raporu Analiz Et</h3>
+      <p>Ekspertiz raporunu yükle — sade Türkçe, masraf tahmini ve alım kararı</p>
+      <span class="free-tag">İLK ANALİZ ÜCRETSİZ</span>
+    </div>
+  </div>
+  <div class="demo-row">veya <span onclick="loadDemo()">demo raporu dene (kayıt gerekmez) →</span></div>
+</div>
+
+<!-- ARAÇ ANALİZ GİRİŞ -->
+<div class="screen" id="screen-arac-analiz">
+  <div style="padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+    <button onclick="navTab('home')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px">←</button>
+    <span style="font-family:'Syne',sans-serif;font-weight:600;font-size:16px">Aracı Analiz Et</span>
+  </div>
+  <div style="max-width:560px;margin:0 auto;padding:1.5rem 1.5rem 5rem">
+    <div style="background:var(--surface);border:1.5px dashed var(--border2);border-radius:var(--radius);padding:2rem;text-align:center;margin-bottom:.75rem">
+      <div style="font-size:28px;margin-bottom:.5rem">🔗</div>
+      <div style="font-size:14px;font-weight:500;margin-bottom:.4rem">İlan Linki Yapıştır</div>
+      <input type="text" placeholder="https://www.sahibinden.com/ilan/..." style="width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:10px 14px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;margin-top:.5rem">
+    </div>
+    <div style="text-align:center;font-size:12px;color:#444;margin:.5rem 0">— veya —</div>
+    <div style="background:var(--surface);border:1.5px dashed var(--border2);border-radius:var(--radius);padding:1.5rem;text-align:center;margin-bottom:1.25rem;cursor:pointer">
+      <div style="font-size:24px;margin-bottom:.4rem">📸</div>
+      <div style="font-size:13px;font-weight:500;margin-bottom:.2rem">İlan Fotoğrafı Yükle</div>
+      <div style="font-size:12px;color:var(--muted)">Ekran görüntüsü veya araç fotoğrafı</div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1.25rem">
+      <div class="section-title-sm">GEÇMİŞ RAPORLAR İÇİN (İSTEĞE BAĞLI)</div>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="plaka-input" placeholder="Plaka: 16 ABC 123" style="flex:1;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none">
+        <button onclick="checkPlate()" style="background:var(--accent);color:#fff;border:none;padding:9px 16px;border-radius:8px;font-size:13px;cursor:pointer;font-family:'DM Sans',sans-serif">Sorgula</button>
+      </div>
+      <div style="font-size:11px;color:#555;margin-top:6px">Plaka veya şase ile daha önce yapılan raporları gör</div>
+    </div>
+    <button onclick="startAracAnaliz()" style="width:100%;background:var(--accent);color:#fff;border:none;padding:13px;border-radius:var(--radius);font-family:'Syne',sans-serif;font-size:15px;font-weight:600;cursor:pointer">Analiz Et</button>
+  </div>
+</div>
+
+<!-- ARAÇ ANALİZ LOADING -->
+<div class="loading-state" id="aracLoadingSection">
+  <div class="spinner"></div>
+  <p style="font-family:'Syne',sans-serif;font-size:16px;font-weight:600;margin-bottom:1.5rem">Araç analiz ediliyor...</p>
+  <ul class="loading-steps">
+    <li id="as1"><span class="step-dot"></span>İlan bilgileri okunuyor</li>
+    <li id="as2"><span class="step-dot"></span>Fiyat piyasayla karşılaştırılıyor</li>
+    <li id="as3"><span class="step-dot"></span>Kronik sorunlar sorgulanıyor</li>
+    <li id="as4"><span class="step-dot"></span>Satıcı soruları hazırlanıyor</li>
+    <li id="as5"><span class="step-dot"></span>Yakın ekspertizler listeleniyor</li>
+  </ul>
+</div>
+
+<!-- ARAÇ ANALİZ SONUÇ -->
+<div class="screen" id="screen-arac-sonuc">
+  <div style="padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
+    <button onclick="showScreen('arac-analiz')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px">←</button>
+    <span style="font-family:'Syne',sans-serif;font-weight:600;font-size:16px">2019 Renault Clio 1.5 dCi</span>
+  </div>
+  <div style="max-width:680px;margin:0 auto;padding:1.5rem 1.5rem 5rem">
+    <div style="background:rgba(232,85,85,.1);border:1px solid rgba(232,85,85,.25);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem">
+      <div class="section-title-sm" style="color:var(--red)">FİYAT ANALİZİ</div>
+      <div style="font-size:14px">185.000 ₺ isteniyor · Piyasa <strong>163.000–170.000 ₺</strong> · <span style="color:var(--red)">%12 pahalı</span></div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem">
+      <div class="section-title-sm">KRONİK SORUNLAR · Renault Clio 1.5 dCi (2018-2020)</div>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <div style="font-size:13px;display:flex;gap:8px"><span style="color:var(--yellow)">⚠</span>EGR valfi tıkanması — 50.000 km üzerinde yaygın</div>
+        <div style="font-size:13px;display:flex;gap:8px"><span style="color:var(--yellow)">⚠</span>Turbo hortumu çatlama şikayeti</div>
+        <div style="font-size:13px;display:flex;gap:8px"><span style="color:var(--red)">⚠</span>Direksiyon gecikmeli tepki</div>
+      </div>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem">
+      <div class="section-title-sm">SATICI SORULARI</div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:.75rem">
+        <div style="font-size:13px;color:#ccc;padding:6px 10px;background:var(--surface2);border-radius:7px">1. Triger ne zaman değişti, belgesi var mı?</div>
+        <div style="font-size:13px;color:#ccc;padding:6px 10px;background:var(--surface2);border-radius:7px">2. EGR temizlendi veya değiştirildi mi?</div>
+        <div style="font-size:13px;color:#ccc;padding:6px 10px;background:var(--surface2);border-radius:7px">3. Servis geçmişi, yetkili kayıtlar var mı?</div>
+      </div>
+      <button style="width:100%;background:transparent;border:1px solid var(--border2);color:var(--muted);padding:9px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer">WhatsApp'ta Kopyala</button>
+    </div>
+    <div class="section-title-sm" style="margin-top:1.5rem">BÖLGENİZDEKİ EKSPERTİZLER · Nilüfer, Bursa</div>
+    <div class="station-grid">
+      <div class="station-card featured">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:.5rem">
+          <div class="station-logo-sm">DB</div>
+          <div><div style="font-size:13px;font-weight:500;display:flex;align-items:center;gap:5px">Dynobil <span class="featured-pill">Öne Çıkan</span></div><div style="font-size:11px;color:var(--muted)">Osmangazi</div></div>
+        </div>
+        <div style="font-size:12px;color:var(--yellow)">★★★★★ <span style="color:var(--muted)">4.8</span></div>
+      </div>
+      <div class="station-card featured">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:.5rem">
+          <div class="station-logo-sm">OR</div>
+          <div><div style="font-size:13px;font-weight:500;display:flex;align-items:center;gap:5px">Otorapor <span class="featured-pill">Öne Çıkan</span></div><div style="font-size:11px;color:var(--muted)">Nilüfer</div></div>
+        </div>
+        <div style="font-size:12px;color:var(--yellow)">★★★★☆ <span style="color:var(--muted)">4.3</span></div>
+      </div>
+      <div class="station-card">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:.5rem">
+          <div class="station-logo-sm">BE</div>
+          <div><div style="font-size:13px;font-weight:500">Bulut Ekspertiz</div><div style="font-size:11px;color:var(--muted)">Edremit</div></div>
+        </div>
+        <div style="font-size:12px;color:var(--yellow)">★★★★★ <span style="color:var(--muted)">4.9</span></div>
+      </div>
+      <div class="station-card">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:.5rem">
+          <div class="station-logo-sm">GG</div>
+          <div><div style="font-size:13px;font-weight:500">Güney Garanti</div><div style="font-size:11px;color:var(--muted)">Yıldırım</div></div>
+        </div>
+        <div style="font-size:12px;color:var(--yellow)">★★★★☆ <span style="color:var(--muted)">4.1</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RAPOR LOADING -->
+<div class="loading-state" id="loadingSection">
+  <div class="spinner"></div>
+  <p style="font-family:'Syne',sans-serif;font-size:16px;font-weight:600;margin-bottom:1.5rem">Rapor analiz ediliyor...</p>
+  <ul class="loading-steps" id="loadingSteps">
+    <li id="step1"><span class="step-dot"></span>Rapor okunuyor ve ayrıştırılıyor</li>
+    <li id="step2"><span class="step-dot"></span>Güvenlik bulguları değerlendiriliyor</li>
+    <li id="step3"><span class="step-dot"></span>Mekanik durum analiz ediliyor</li>
+    <li id="step4"><span class="step-dot"></span>Maliyet tahmini hesaplanıyor</li>
+    <li id="step5"><span class="step-dot"></span>Sonuç raporu hazırlanıyor</li>
+  </ul>
+</div>
+
+<!-- RAPOR SONUCU -->
+<div class="result-state" id="resultSection">
+  <div style="padding:1.5rem 0 0" id="resultContent"></div>
+  <div style="max-width:720px;margin:0 auto;padding:0 1.5rem">
+    <button class="reset-btn" onclick="resetAll()">← Yeni rapor analiz et</button>
+  </div>
+</div>
+
+<!-- PROFİL -->
+<div class="screen" id="screen-profil">
+  <div style="max-width:680px;margin:0 auto;padding:1.5rem 1.5rem 5rem">
+    <div class="profile-card">
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:1.25rem">
+        <div class="avatar">AY</div>
+        <div><div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:700">Ahmet Yılmaz</div><div style="font-size:13px;color:var(--muted)">+90 532 *** ** 47</div></div>
+      </div>
+      <div class="stat-grid">
+        <div class="stat-box"><div class="stat-num">3</div><div class="stat-label">Analiz Hakkı</div></div>
+        <div class="stat-box"><div class="stat-num">7</div><div class="stat-label">Toplam Analiz</div></div>
+        <div class="stat-box"><div class="stat-num">2</div><div class="stat-label">Davet</div></div>
+      </div>
+    </div>
+    <div class="referral-card">
+      <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:.4rem">Arkadaşını Davet Et 🎁</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:1rem;line-height:1.6">Her 3 davette kura çekilir — kazanan ücretsiz analiz veya uzman görüşmesi kazanır.</div>
+      <div class="referral-code">EKS-A7B2</div>
+      <div style="font-size:12px;color:var(--muted);display:flex;justify-content:space-between;margin-bottom:4px"><span>2 / 3 davet</span><span style="color:var(--accent2)">1 kaldı!</span></div>
+      <div class="progress-bar"><div class="progress-fill" style="width:66%"></div></div>
+      <button class="btn-share" style="margin-top:.75rem">WhatsApp'ta Paylaş</button>
+    </div>
+    <div class="section-title-sm" style="margin:1.5rem 0 .75rem">ÖDÜLLERİM</div>
+    <div class="prize-card"><div style="font-size:22px">🎯</div><div style="flex:1"><div style="font-size:14px;font-weight:500">Ücretsiz Rapor Analizi</div><div style="font-size:12px;color:var(--muted)">Kura ödülü · 12 Nisan 2026</div></div><span class="prize-badge">Aktif</span></div>
+    <div class="prize-card"><div style="font-size:22px">📞</div><div style="flex:1"><div style="font-size:14px;font-weight:500">Uzman Görüşmesi</div><div style="font-size:12px;color:var(--muted)">Kura ödülü · 2 Mart 2026</div></div><span class="prize-badge used">Kullanıldı</span></div>
+    <div class="section-title-sm" style="margin:1.5rem 0 .75rem">ANALİZLERİM</div>
+    <div class="report-card"><div class="verdict-dot vd-B">B</div><div style="flex:1"><div style="font-size:14px;font-weight:500">2017 BMW 320i</div><div style="font-size:12px;color:var(--muted)">34 AB 1234 · 28 Nisan 2026</div></div><div style="font-size:12px;color:var(--muted)">PDF ↓</div></div>
+    <div class="report-card"><div class="verdict-dot vd-A">A</div><div style="flex:1"><div style="font-size:14px;font-weight:500">2020 Toyota Corolla</div><div style="font-size:12px;color:var(--muted)">16 TK 5678 · 15 Nisan 2026</div></div><div style="font-size:12px;color:var(--muted)">PDF ↓</div></div>
+  </div>
+</div>
+
+<div class="bnav">
+  <div class="bnav-item active" id="bn-home" onclick="navTab('home')"><span class="bnav-icon">🏠</span><span>Ana Sayfa</span></div>
+  <div class="bnav-item" id="bn-analiz" onclick="requireLogin('rapor')"><span class="bnav-icon">📄</span><span>Rapor Analiz</span></div>
+  <div class="bnav-item" id="bn-profil" onclick="navTab('profil')"><span class="bnav-icon">👤</span><span>Profilim</span></div>
+</div>
+
+<script>
+const REPORT_TEXT=`Araç: 2013 KIA SPORTAGE | Plaka: 26B6537 | KM: 118.303 | Manuel Benzin\nNOTLAR:\n- KARTERDE YAĞ SIZINTISI MEVCUT\n- ROTİLLERDE DEFORMASYON MEVCUT\n- PERİYODİK BAKIM ÖNERİLİR\nŞASE: Tüm şase ve podye parçaları ORİJİNAL\nSAĞ ÖN ÇAMURLUK: ORİJİNAL GÖÇÜK ONARIM`;
+const SYSTEM_PROMPT=`Sen EkspertizAI sistemisin. Raporu analiz et, SADECE JSON döndür:\n{"verdict":"B","verdictLabel":"B Tipi — Masraflı ama Kemikli","summary":"3-4 cümle sade Türkçe","categories":[{"name":"Güvenlik","score":"green","scoreLabel":"İYİ","findings":[{"text":"bulgu","level":"green"}]}],"costs":[{"label":"kalem","amount":"X – Y ₺","urgent":true}],"totalCostMin":15000,"totalCostMax":25000,"glossary":{"rotil":"açıklama"}}`;
+const STATION_HTML=`
+<div style="max-width:720px;margin:0 auto;padding:0 1.5rem 1rem">
+  <div class="section-title-sm">RAPORUN YAPILDIĞI YER</div>
+  <div class="station-top-card">
+    <div class="station-top-inner">
+      <div class="station-logo">DB</div>
+      <div style="flex:1">
+        <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:2px">Dynobil Osmangazi</div>
+        <div style="font-size:12px;color:var(--muted)">Osmangazi Sanayi Sitesi, Bursa</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:1px">0224 000 00 00</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
+        <div><div style="font-size:10px;color:var(--muted);text-align:right">EkspertizAI</div><div style="display:flex;align-items:center;gap:4px;justify-content:flex-end"><span style="font-size:11px;color:var(--yellow);letter-spacing:-1px">★★★★★</span><span style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--accent2)">4.9</span></div></div>
+        <div style="width:100%;height:1px;background:var(--border)"></div>
+        <div><div style="font-size:10px;color:var(--muted);text-align:right">Google</div><div style="display:flex;align-items:center;gap:4px;justify-content:flex-end"><span style="font-size:11px;color:var(--yellow);letter-spacing:-1px">★★★★☆</span><span style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#4285f4">4.4</span></div></div>
+      </div>
+    </div>
+    <div style="margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--border);display:flex;gap:8px">
+      <div style="flex:1;background:var(--surface2);border-radius:8px;padding:6px 10px;text-align:center"><div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700">124</div><div style="font-size:10px;color:var(--muted);margin-top:1px">EkspertizAI Yorum</div></div>
+      <div style="flex:1;background:var(--surface2);border-radius:8px;padding:6px 10px;text-align:center"><div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700">312</div><div style="font-size:10px;color:var(--muted);margin-top:1px">Google Yorum</div></div>
+      <div style="flex:1;background:var(--surface2);border-radius:8px;padding:6px 10px;text-align:center"><div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--green)">%94</div><div style="font-size:10px;color:var(--muted);margin-top:1px">Tavsiye Ediyor</div></div>
+    </div>
+  </div>
+</div>`;
+
+let pendingAction=null,loggedIn=false;
+
+function requireLogin(action){pendingAction=action;if(loggedIn){startCurrentAction();return;}document.getElementById('modal-kayit').classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open')}
+function startCurrentAction(){loggedIn=true;if(pendingAction==='arac')showScreen('arac-analiz');else if(pendingAction==='rapor')loadDemo();pendingAction=null;}
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('loadingSection').classList.remove('active');
+  document.getElementById('aracLoadingSection').classList.remove('active');
+  document.getElementById('resultSection').classList.remove('active');
+  const el=document.getElementById('screen-'+id);
+  if(el){el.classList.add('active');window.scrollTo(0,0);}
+}
+function navTab(tab){
+  document.querySelectorAll('.nav-btn,.bnav-item').forEach(b=>b.classList.remove('active'));
+  if(tab==='home'){showScreen('home');document.getElementById('nb-home')?.classList.add('active');document.getElementById('bn-home')?.classList.add('active');}
+  else if(tab==='profil'){showScreen('profil');document.getElementById('nb-profil')?.classList.add('active');document.getElementById('bn-profil')?.classList.add('active');}
+}
+function checkPlate(){const val=document.getElementById('plaka-input').value.trim();if(val.length>4)document.getElementById('modal-gecmis').classList.add('open');}
+async function startAracAnaliz(){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('aracLoadingSection').classList.add('active');
+  window.scrollTo(0,0);
+  const steps=['as1','as2','as3','as4','as5'];
+  for(let i=0;i<steps.length;i++){await new Promise(r=>setTimeout(r,800));if(i>0)document.getElementById(steps[i-1]).className='step-done';document.getElementById(steps[i]).className='step-active';}
+  await new Promise(r=>setTimeout(r,500));
+  document.getElementById(steps[4]).className='step-done';
+  document.getElementById('aracLoadingSection').classList.remove('active');
+  showScreen('arac-sonuc');
+}
+async function loadDemo(){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('resultSection').classList.remove('active');
+  document.getElementById('loadingSection').classList.add('active');
+  window.scrollTo(0,0);
+  const steps=['step1','step2','step3','step4','step5'];
+  for(let i=0;i<steps.length;i++){await new Promise(r=>setTimeout(r,850));if(i>0)document.getElementById(steps[i-1]).className='step-done';document.getElementById(steps[i]).className='step-active';}
+  await new Promise(r=>setTimeout(r,600));
+  document.getElementById(steps[4]).className='step-done';
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,system:SYSTEM_PROMPT,messages:[{role:'user',content:'Analiz et:\n\n'+REPORT_TEXT}]})});
+    const data=await res.json();
+    const raw=data.content.map(i=>i.text||'').join('');
+    showResult(JSON.parse(raw.replace(/```json|```/g,'').trim()));
+  }catch(e){showFallback();}
+}
+function showResult(r){
+  document.getElementById('loadingSection').classList.remove('active');
+  const sc={green:'sg',yellow:'sy',red:'sr'};
+  const fc={green:'var(--green)',yellow:'var(--yellow)',red:'var(--red)'};
+  let sumText=r.summary||'';
+  if(r.glossary){Object.entries(r.glossary).forEach(([t,d])=>{sumText=sumText.replace(new RegExp(`(${t})`,'gi'),`<span class="term">$1<span class="term-tip">${d}</span></span>`);});}
+  document.getElementById('resultContent').innerHTML=STATION_HTML+`
+    <div style="max-width:720px;margin:0 auto;padding:0 1.5rem">
+      <div class="result-header">
+        <div class="vehicle-info"><h2>2013 KIA Sportage</h2><p>Plaka: 26B6537 &nbsp;·&nbsp; 118.303 km &nbsp;·&nbsp; Manuel Benzin</p></div>
+        <div class="verdict-badge-big vb-${r.verdict}">${r.verdict} TİPİ</div>
+      </div>
+      <div class="summary-box">${sumText}</div>
+      <div class="categories">${r.categories.map(cat=>`<div class="cat-card"><div class="cat-header"><span class="cat-title">${cat.name.toUpperCase()}</span><span class="cat-score ${sc[cat.score]}">${cat.scoreLabel}</span></div><ul class="cat-findings">${cat.findings.map(f=>`<li><span class="find-dot" style="background:${fc[f.level]}"></span>${f.text}</li>`).join('')}</ul></div>`).join('')}</div>
+      <div class="cost-section"><div class="section-title-sm">TAHMİNİ MASRAF KALEMLERİ</div>${r.costs.map(c=>`<div class="cost-row"><span style="color:#ccc">${c.label}</span><span class="${c.urgent?'cost-urgent':'cost-normal'}" style="font-family:'Syne',sans-serif;font-weight:600">${c.amount}</span></div>`).join('')}<div class="cost-row"><span style="color:#ccc;font-weight:500">Toplam</span><span style="font-family:'Syne',sans-serif;font-weight:700;color:var(--accent2)">${(r.totalCostMin||0).toLocaleString('tr-TR')} – ${(r.totalCostMax||0).toLocaleString('tr-TR')} ₺</span></div></div>
+      <div class="section-title-sm">UZMAN HİZMETLERİ</div>
+      <div class="service-card"><div class="service-icon" style="background:rgba(232,98,42,.15)">📞</div><div class="service-info"><div class="service-title">Uzman'a Sor</div><div class="service-desc">15 dk telefon görüşmesi</div></div><div style="text-align:right;flex-shrink:0"><div class="price-tag">199 ₺<small>/ görüşme</small></div><button class="btn-buy">Talep Et</button></div></div>
+      <div class="service-card" style="margin-bottom:1.5rem"><div class="service-icon" style="background:rgba(76,175,125,.12)">📊</div><div class="service-info"><div class="service-title">Premium Değerleme</div><div class="service-desc">Güncel piyasa fiyatı + AI analizi PDF</div></div><div style="text-align:right;flex-shrink:0"><div class="price-tag">129 ₺<small>/ rapor</small></div><button class="btn-buy">Satın Al</button></div></div>
+      <div class="review-section">
+        <div class="section-title-sm">EKSPERTİZ HAKKINDA YORUM YAP</div>
+        <div style="font-size:13px;color:var(--muted);margin-bottom:.75rem">Dynobil Osmangazi · Rapor deneyimini paylaş</div>
+        <div class="stars-input" id="starsInput"><button class="star-btn" onclick="setStar(1)">★</button><button class="star-btn" onclick="setStar(2)">★</button><button class="star-btn" onclick="setStar(3)">★</button><button class="star-btn" onclick="setStar(4)">★</button><button class="star-btn" onclick="setStar(5)">★</button></div>
+        <textarea rows="3" placeholder="Ekspertiz süreci nasıldı? Rapor kalitesi, servis tutumu..."></textarea>
+        <div class="reward-note">🎁 Yorum yapanlara kura ile ödül — ücretsiz analiz veya uzman görüşmesi</div>
+        <button class="btn-submit">Yorumu Gönder (Onay Bekler)</button>
+      </div>
+      <p class="disclaimer">Bu analiz yapay zeka desteklidir, bilgilendirme amaçlıdır. Bağlayıcı değildir.</p>
+    </div>`;
+  document.getElementById('resultSection').classList.add('active');
+  window.scrollTo(0,0);
+}
+function showFallback(){showResult({verdict:"B",verdictLabel:"B Tipi",summary:"Bu 2013 KIA Sportage'ın şasesi ve tüm iskelet parçaları orijinal durumda. Karterde yağ sızıntısı ve rotillerde deformasyon mevcut — acil masraflardır. Sağ ön çamurlukta göçük onarımı yapılmış. Masrafı fiyata yansıtarak pazarlık yapılabilir.",categories:[{name:"Güvenlik",score:"yellow",scoreLabel:"DİKKAT",findings:[{text:"Şase ve tüm iç direkler orijinal",level:"green"},{text:"Tampon demirleri kontrol edilemedi",level:"yellow"},{text:"Airbag ve fren testi yapılmamış",level:"yellow"}]},{name:"Mekanik",score:"red",scoreLabel:"RİSKLİ",findings:[{text:"Karterde yağ sızıntısı — acil",level:"red"},{text:"Dinamometre testi yapılmamış",level:"yellow"}]},{name:"Sarf Masraf",score:"red",scoreLabel:"MASRAFLI",findings:[{text:"Rotil değişimi gerekli",level:"red"},{text:"Periyodik bakım yapılmamış",level:"yellow"}]},{name:"Kaporta & Değer",score:"yellow",scoreLabel:"DİKKAT",findings:[{text:"Sağ ön çamurlukta göçük onarımı",level:"yellow"},{text:"Hasar kaydı sorgulandı — temiz",level:"green"}]}],costs:[{label:"Karter yağ sızıntısı",amount:"3.000 – 6.000 ₺",urgent:true},{label:"Rotil değişimi",amount:"4.000 – 7.000 ₺",urgent:true},{label:"Periyodik bakım",amount:"2.500 – 4.000 ₺",urgent:false},{label:"Kaporta kozmetik",amount:"5.000 – 10.000 ₺",urgent:false}],totalCostMin:14500,totalCostMax:27000,glossary:{rotil:"Ön süspansiyon eklem parçası. Deforme olunca direksiyon kontrolü bozulur.",karter:"Motorun yağ haznesi. Sızıntı motor hasarına yol açar."}})}
+function setStar(n){document.querySelectorAll('.star-btn').forEach((b,i)=>b.classList.toggle('active',i<n));}
+function resetAll(){document.getElementById('resultSection').classList.remove('active');document.getElementById('loadingSection').classList.remove('active');['step1','step2','step3','step4','step5'].forEach(s=>{const el=document.getElementById(s);if(el)el.className='';});document.getElementById('resultContent').innerHTML='';navTab('home');}
+</script>
+</body>
+</html>

@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EkspertizAI — Yönetim Paneli</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0a0a;--sidebar:#111;--surface:#161616;--surface2:#1c1c1c;
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --text:#f0ede8;--muted:#666;--muted2:#999;
+  --accent:#e8622a;--accent2:#f0a060;
+  --green:#4caf7d;--yellow:#f5c842;--red:#e85555;--blue:#5b9cf6;
+  --radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;font-size:14px}
+
+.sidebar{width:220px;background:var(--sidebar);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;position:fixed;top:0;left:0;bottom:0;z-index:100;overflow-y:auto}
+.sidebar-logo{padding:1.25rem 1.25rem 1rem;border-bottom:1px solid var(--border)}
+.logo{font-family:'Syne',sans-serif;font-weight:700;font-size:16px;letter-spacing:-.3px}
+.logo span{color:var(--accent)}
+.logo-sub{font-size:10px;color:var(--muted);margin-top:1px}
+.sidebar-nav{flex:1;padding:.75rem 0}
+.nav-section{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:.8px;padding:.5rem 1.25rem .25rem;text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:9px;padding:.6rem 1.25rem;cursor:pointer;transition:.15s;border-left:2px solid transparent;margin:1px 0}
+.nav-item:hover{background:rgba(255,255,255,.04);color:var(--text)}
+.nav-item.active{background:rgba(232,98,42,.1);border-left-color:var(--accent);color:var(--accent2)}
+.nav-icon{font-size:15px;width:20px;text-align:center}
+.nav-label{font-size:13px}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:600;padding:1px 6px;border-radius:99px}
+.sidebar-footer{padding:1rem 1.25rem;border-top:1px solid var(--border)}
+.admin-avatar{width:30px;height:30px;border-radius:50%;background:rgba(232,98,42,.2);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:12px;color:var(--accent2)}
+
+.main{margin-left:220px;flex:1;min-height:100vh;display:flex;flex-direction:column}
+.topbar{padding:.875rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--bg);position:sticky;top:0;z-index:50}
+.topbar-title{font-family:'Syne',sans-serif;font-weight:700;font-size:17px}
+.topbar-right{display:flex;align-items:center;gap:10px}
+.topbar-date{font-size:12px;color:var(--muted)}
+.btn-sm{background:var(--accent);color:#fff;border:none;padding:6px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif}
+.btn-sm:hover{opacity:.88}
+.btn-outline{background:transparent;color:var(--muted2);border:1px solid var(--border2);padding:6px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:'DM Sans',sans-serif}
+.btn-outline:hover{color:var(--text)}
+.content{padding:1.5rem;flex:1}
+.page{display:none}.page.active{display:block}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:1.5rem}
+@media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem 1.25rem}
+.kpi-label{font-size:11px;color:var(--muted);margin-bottom:.4rem;letter-spacing:.3px;text-transform:uppercase}
+.kpi-val{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;margin-bottom:.2rem}
+.kpi-sub{font-size:11px}
+.kpi-sub.up{color:var(--green)}.kpi-sub.down{color:var(--red)}.kpi-sub.neutral{color:var(--muted)}
+
+.chart-grid{display:grid;grid-template-columns:2fr 1fr;gap:12px;margin-bottom:1.5rem}
+@media(max-width:900px){.chart-grid{grid-template-columns:1fr}}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem}
+.chart-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:600;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between}
+.chart-title span{font-size:11px;color:var(--muted);font-family:'DM Sans',sans-serif;font-weight:400}
+.bar{transition:.3s}.bar:hover{opacity:.8}
+.donut-legend{width:100%;display:flex;flex-direction:column;gap:6px}
+.legend-row{display:flex;align-items:center;justify-content:space-between;font-size:12px}
+.legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+.table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:1.5rem}
+.table-header{padding:1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.table-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:600}
+table{width:100%;border-collapse:collapse}
+th{padding:.65rem 1.25rem;font-size:11px;font-weight:600;color:var(--muted);text-align:left;border-bottom:1px solid var(--border);background:var(--surface2);letter-spacing:.3px;text-transform:uppercase}
+td{padding:.75rem 1.25rem;font-size:13px;border-bottom:1px solid var(--border);color:var(--text)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(255,255,255,.02)}
+.badge{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px}
+.badge-green{background:rgba(76,175,125,.15);color:var(--green)}
+.badge-yellow{background:rgba(245,200,66,.12);color:var(--yellow)}
+.badge-red{background:rgba(232,85,85,.12);color:var(--red)}
+.badge-blue{background:rgba(91,156,246,.12);color:var(--blue)}
+.badge-gray{background:rgba(255,255,255,.07);color:var(--muted2)}
+.verdict-A,.verdict-B,.verdict-C{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:6px;font-family:'Syne',sans-serif;font-weight:700;font-size:12px}
+.verdict-A{background:rgba(76,175,125,.2);color:var(--green)}
+.verdict-B{background:rgba(245,200,66,.15);color:var(--yellow)}
+.verdict-C{background:rgba(232,85,85,.15);color:var(--red)}
+.action-btn{background:none;border:1px solid var(--border2);color:var(--muted2);font-size:11px;padding:3px 10px;border-radius:6px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:.15s}
+.action-btn:hover{color:var(--text)}
+.action-btn.approve{border-color:rgba(76,175,125,.4);color:var(--green)}
+.action-btn.reject{border-color:rgba(232,85,85,.4);color:var(--red)}
+
+.review-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:10px}
+.review-finding{background:rgba(232,98,42,.08);border:1px solid rgba(232,98,42,.2);border-radius:8px;padding:.75rem 1rem;font-size:13px;color:var(--text);margin-bottom:.75rem;line-height:1.6}
+.review-actions{display:flex;gap:8px;flex-wrap:wrap}
+.score-select{background:var(--surface2);border:1px solid var(--border2);color:var(--text);font-family:'DM Sans',sans-serif;font-size:12px;padding:5px 10px;border-radius:7px;outline:none;cursor:pointer}
+
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:700px){.form-grid{grid-template-columns:1fr}}
+.form-group{display:flex;flex-direction:column;gap:4px}
+.form-group label{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.3px;text-transform:uppercase}
+input[type=text],input[type=tel],input[type=email],input[type=number],select,textarea{background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;width:100%;transition:.15s}
+input:focus,select:focus,textarea:focus{border-color:rgba(232,98,42,.5)}
+select option{background:#1c1c1c}
+.form-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:12px}
+.form-section-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:600;margin-bottom:1rem}
+.form-actions{display:flex;gap:10px;margin-top:1rem}
+.sponsor-0{background:rgba(255,255,255,.06);color:var(--muted)}
+.sponsor-1{background:rgba(91,156,246,.12);color:var(--blue)}
+.sponsor-2{background:rgba(232,98,42,.15);color:var(--accent2)}
+.alert{background:rgba(232,98,42,.1);border:1px solid rgba(232,98,42,.25);border-radius:var(--radius);padding:1rem 1.25rem;display:flex;align-items:center;gap:10px;margin-bottom:1.5rem}
+.section-title-sm{font-family:'Syne',sans-serif;font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.5px;text-transform:uppercase;margin-bottom:.75rem}
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo">Ekspertiz<span>AI</span></div>
+    <div class="logo-sub">Yönetim Paneli</div>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-section">Genel</div>
+    <div class="nav-item active" onclick="goPage('dashboard')"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></div>
+    <div class="nav-item" onclick="goPage('gelir')"><span class="nav-icon">💰</span><span class="nav-label">Gelir & Muhasebe</span></div>
+    <div class="nav-section">Analizler</div>
+    <div class="nav-item" onclick="goPage('raporlar')"><span class="nav-icon">📄</span><span class="nav-label">Raporlar</span></div>
+    <div class="nav-item" onclick="goPage('review')"><span class="nav-icon">🔔</span><span class="nav-label">Review Kuyruğu</span><span class="nav-badge">3</span></div>
+    <div class="nav-item" onclick="goPage('yorumlar')"><span class="nav-icon">⭐</span><span class="nav-label">Yorumlar</span><span class="nav-badge">5</span></div>
+    <div class="nav-section">İstasyonlar</div>
+    <div class="nav-item" onclick="goPage('istasyonlar')"><span class="nav-icon">🏢</span><span class="nav-label">İstasyon Listesi</span></div>
+    <div class="nav-item" onclick="goPage('istasyon-ekle')"><span class="nav-icon">➕</span><span class="nav-label">İstasyon Ekle</span></div>
+    <div class="nav-item" onclick="goPage('sponsorluk')"><span class="nav-icon">🎯</span><span class="nav-label">Sponsorluklar</span></div>
+    <div class="nav-section">Kullanıcılar</div>
+    <div class="nav-item" onclick="goPage('kullanicilar')"><span class="nav-icon">👥</span><span class="nav-label">Kullanıcılar</span></div>
+    <div class="nav-item" onclick="goPage('danismanlik')"><span class="nav-icon">📞</span><span class="nav-label">Danışmanlık</span></div>
+    <div class="nav-item" onclick="goPage('uzmanlar')"><span class="nav-icon">🎓</span><span class="nav-label">Uzmanlar</span></div>
+    <div class="nav-section">Arşiv</div>
+    <div class="nav-item" onclick="goPage('harici-raporlar')"><span class="nav-icon">📥</span><span class="nav-label">Harici Raporlar</span><span class="nav-badge" id="badge-harici">4</span></div>
+    <div class="nav-item" onclick="goPage('celisiki')"><span class="nav-icon">⚠️</span><span class="nav-label">Çelişki Tespiti</span></div>
+    <div class="nav-section">Sistem</div>
+    <div class="nav-item" onclick="goPage('skill')"><span class="nav-icon">🧠</span><span class="nav-label">Skill Yönetimi</span></div>
+    <div class="nav-item" onclick="goPage('ayarlar')"><span class="nav-icon">⚙️</span><span class="nav-label">Ayarlar</span></div>
+  </div>
+  <div class="sidebar-footer">
+    <div style="display:flex;align-items:center;gap:8px">
+      <div class="admin-avatar">BY</div>
+      <div><div style="font-size:12px;font-weight:500">Bulut Yönetici</div><div style="font-size:11px;color:var(--muted)">Admin</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="topbar-title">Dashboard</div>
+    <div class="topbar-right">
+      <span class="topbar-date" id="topbar-date"></span>
+      <button class="btn-outline">↻ Yenile</button>
+      <button class="btn-sm">+ Rapor Ekle</button>
+    </div>
+  </div>
+  <div class="content">
+
+    <!-- DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div class="alert"><span style="font-size:18px">🔔</span><span style="font-size:13px;line-height:1.5"><strong>3 rapor</strong> manuel inceleme bekliyor · <strong>5 yorum</strong> onay bekliyor · <strong>2 danışmanlık</strong> talebi cevaplanmadı</span></div>
+      <div class="kpi-grid">
+        <div class="kpi-card"><div class="kpi-label">Bugünkü Gelir</div><div class="kpi-val">₺2.847</div><div class="kpi-sub up">↑ %18 dünden</div></div>
+        <div class="kpi-card"><div class="kpi-label">Aylık Gelir</div><div class="kpi-val">₺38.420</div><div class="kpi-sub up">↑ %34 geçen ay</div></div>
+        <div class="kpi-card"><div class="kpi-label">Toplam Analiz</div><div class="kpi-val">1.247</div><div class="kpi-sub neutral">Bu ay: 312</div></div>
+        <div class="kpi-card"><div class="kpi-label">Aktif Kullanıcı</div><div class="kpi-val">864</div><div class="kpi-sub up">↑ 47 bu hafta</div></div>
+      </div>
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-title">Son 7 Gün Gelir <span>Günlük ₺</span></div>
+          <svg width="100%" height="120" viewBox="0 0 480 120" style="overflow:visible">
+            <defs><linearGradient id="bg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#e8622a" stop-opacity=".8"/><stop offset="100%" stop-color="#e8622a" stop-opacity=".2"/></linearGradient></defs>
+            <rect class="bar" x="10"  y="80" width="50" height="40" rx="4" fill="url(#bg)"/>
+            <rect class="bar" x="80"  y="60" width="50" height="60" rx="4" fill="url(#bg)"/>
+            <rect class="bar" x="150" y="45" width="50" height="75" rx="4" fill="url(#bg)"/>
+            <rect class="bar" x="220" y="70" width="50" height="50" rx="4" fill="url(#bg)"/>
+            <rect class="bar" x="290" y="30" width="50" height="90" rx="4" fill="url(#bg)"/>
+            <rect class="bar" x="360" y="50" width="50" height="70" rx="4" fill="url(#bg)"/>
+            <rect class="bar" x="420" y="20" width="50" height="100" rx="4" fill="#e8622a"/>
+            <text x="35"  y="115" font-size="10" fill="#666" text-anchor="middle">Pts</text>
+            <text x="105" y="115" font-size="10" fill="#666" text-anchor="middle">Sal</text>
+            <text x="175" y="115" font-size="10" fill="#666" text-anchor="middle">Çar</text>
+            <text x="245" y="115" font-size="10" fill="#666" text-anchor="middle">Per</text>
+            <text x="315" y="115" font-size="10" fill="#666" text-anchor="middle">Cum</text>
+            <text x="385" y="115" font-size="10" fill="#666" text-anchor="middle">Cmt</text>
+            <text x="445" y="115" font-size="10" fill="#f0a060" text-anchor="middle" font-weight="600">Pzr</text>
+            <text x="35"  y="76" font-size="9" fill="#999" text-anchor="middle">1.2k</text>
+            <text x="105" y="56" font-size="9" fill="#999" text-anchor="middle">1.8k</text>
+            <text x="175" y="41" font-size="9" fill="#999" text-anchor="middle">2.1k</text>
+            <text x="245" y="66" font-size="9" fill="#999" text-anchor="middle">1.5k</text>
+            <text x="315" y="26" font-size="9" fill="#999" text-anchor="middle">2.6k</text>
+            <text x="385" y="46" font-size="9" fill="#999" text-anchor="middle">2.0k</text>
+            <text x="445" y="16" font-size="9" fill="#f0a060" text-anchor="middle" font-weight="600">2.8k</text>
+          </svg>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Gelir Dağılımı</div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:1rem">
+            <svg width="100" height="100" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="38" fill="none" stroke="#1c1c1c" stroke-width="16"/>
+              <circle cx="50" cy="50" r="38" fill="none" stroke="#e8622a" stroke-width="16" stroke-dasharray="86 153" stroke-dashoffset="0" transform="rotate(-90 50 50)"/>
+              <circle cx="50" cy="50" r="38" fill="none" stroke="#4caf7d" stroke-width="16" stroke-dasharray="46 193" stroke-dashoffset="-86" transform="rotate(-90 50 50)"/>
+              <circle cx="50" cy="50" r="38" fill="none" stroke="#5b9cf6" stroke-width="16" stroke-dasharray="21 218" stroke-dashoffset="-132" transform="rotate(-90 50 50)"/>
+            </svg>
+            <div class="donut-legend">
+              <div class="legend-row"><div style="display:flex;align-items:center;gap:6px"><span class="legend-dot" style="background:#e8622a"></span>Danışmanlık</div><span style="font-weight:600;color:var(--accent2)">%36</span></div>
+              <div class="legend-row"><div style="display:flex;align-items:center;gap:6px"><span class="legend-dot" style="background:#4caf7d"></span>Sponsorluk</div><span style="font-weight:600;color:var(--green)">%30</span></div>
+              <div class="legend-row"><div style="display:flex;align-items:center;gap:6px"><span class="legend-dot" style="background:#5b9cf6"></span>Premium Rapor</div><span style="font-weight:600;color:var(--blue)">%19</span></div>
+              <div class="legend-row"><div style="display:flex;align-items:center;gap:6px"><span class="legend-dot" style="background:#666"></span>Arşiv</div><span style="font-weight:600;color:var(--muted2)">%15</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="table-card">
+        <div class="table-header"><span class="table-title">Son Raporlar</span><button class="btn-outline" onclick="goPage('raporlar')">Tümünü Gör →</button></div>
+        <table><thead><tr><th>Araç</th><th>Plaka</th><th>Sonuç</th><th>Ekspertiz</th><th>Tarih</th><th>Durum</th></tr></thead>
+        <tbody>
+          <tr><td><strong>2017 BMW 320i</strong></td><td style="color:var(--muted2)">34 AB 1234</td><td><span class="verdict-B">B</span></td><td style="color:var(--muted2)">Dynobil</td><td style="color:var(--muted2)">Bugün 14:32</td><td><span class="badge badge-green">Tamamlandı</span></td></tr>
+          <tr><td><strong>2019 Renault Clio</strong></td><td style="color:var(--muted2)">16 ABD 176</td><td><span class="verdict-C">C</span></td><td style="color:var(--muted2)">Otorapor</td><td style="color:var(--muted2)">Bugün 12:18</td><td><span class="badge badge-yellow">İnceleme Bekliyor</span></td></tr>
+          <tr><td><strong>2021 VW Polo</strong></td><td style="color:var(--muted2)">34 PZ 4821</td><td><span class="verdict-A">A</span></td><td style="color:var(--muted2)">PilotGarage</td><td style="color:var(--muted2)">Dün 18:45</td><td><span class="badge badge-green">Tamamlandı</span></td></tr>
+          <tr><td><strong>2016 Ford Focus</strong></td><td style="color:var(--muted2)">06 TK 7734</td><td><span class="verdict-C">C</span></td><td style="color:var(--muted2)">Güney Garanti</td><td style="color:var(--muted2)">Dün 16:20</td><td><span class="badge badge-red">Riskli Araç</span></td></tr>
+        </tbody></table>
+      </div>
+    </div>
+
+    <!-- GELİR -->
+    <div class="page" id="page-gelir">
+      <div class="kpi-grid">
+        <div class="kpi-card"><div class="kpi-label">Bu Ay Toplam</div><div class="kpi-val">₺38.420</div><div class="kpi-sub up">↑ %34</div></div>
+        <div class="kpi-card"><div class="kpi-label">Sponsorluk Geliri</div><div class="kpi-val">₺11.500</div><div class="kpi-sub neutral">3 aktif sponsor</div></div>
+        <div class="kpi-card"><div class="kpi-label">Danışmanlık</div><div class="kpi-val">₺13.800</div><div class="kpi-sub up">69 görüşme</div></div>
+        <div class="kpi-card"><div class="kpi-label">Anthropic Maliyet</div><div class="kpi-val" style="color:var(--yellow)">$12.40</div><div class="kpi-sub neutral">Bu ay</div></div>
+      </div>
+      <div class="table-card">
+        <div class="table-header"><span class="table-title">Ödeme Geçmişi</span><button class="btn-outline">CSV İndir</button></div>
+        <table><thead><tr><th>Tarih</th><th>Kullanıcı</th><th>Hizmet</th><th>Tutar</th><th>Durum</th><th>İyzico Ref</th></tr></thead>
+        <tbody>
+          <tr><td style="color:var(--muted2)">04.05 14:32</td><td>Ahmet Y.</td><td><span class="badge badge-blue">Danışmanlık</span></td><td style="color:var(--green);font-weight:600">₺199</td><td><span class="badge badge-green">Başarılı</span></td><td style="color:var(--muted2);font-size:11px">IYZ-001234</td></tr>
+          <tr><td style="color:var(--muted2)">04.05 11:15</td><td>Mehmet K.</td><td><span class="badge badge-yellow">Arşiv</span></td><td style="color:var(--green);font-weight:600">₺79</td><td><span class="badge badge-green">Başarılı</span></td><td style="color:var(--muted2);font-size:11px">IYZ-001233</td></tr>
+          <tr><td style="color:var(--muted2)">03.05 19:48</td><td>Fatma D.</td><td><span class="badge badge-blue">Premium</span></td><td style="color:var(--green);font-weight:600">₺129</td><td><span class="badge badge-green">Başarılı</span></td><td style="color:var(--muted2);font-size:11px">IYZ-001232</td></tr>
+          <tr><td style="color:var(--muted2)">03.05 16:22</td><td>Can S.</td><td><span class="badge badge-blue">Danışmanlık</span></td><td style="color:var(--red);font-weight:600">₺199</td><td><span class="badge badge-red">İade</span></td><td style="color:var(--muted2);font-size:11px">IYZ-001231</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+
+    <!-- RAPORLAR -->
+    <div class="page" id="page-raporlar">
+      <div style="display:flex;gap:10px;margin-bottom:1rem;flex-wrap:wrap">
+        <input type="text" placeholder="Plaka veya araç ara..." style="max-width:220px">
+        <select style="width:130px"><option>Tüm Verdictler</option><option>A Tipi</option><option>B Tipi</option><option>C Tipi</option></select>
+        <select style="width:160px"><option>Tüm Durumlar</option><option>Tamamlandı</option><option>İnceleme Bekliyor</option><option>Riskli Araç</option></select>
+      </div>
+      <div class="table-card">
+        <table><thead><tr><th>Araç</th><th>Plaka</th><th>Sonuç</th><th>Ekspertiz</th><th>KM</th><th>Tarih</th><th>Durum</th><th></th></tr></thead>
+        <tbody>
+          <tr><td><strong>2017 BMW 320i</strong></td><td style="color:var(--muted2)">34 AB 1234</td><td><span class="verdict-B">B</span></td><td style="color:var(--muted2)">Dynobil</td><td style="color:var(--muted2)">118.303</td><td style="color:var(--muted2)">04.05</td><td><span class="badge badge-green">Tamamlandı</span></td><td><button class="action-btn">Detay</button></td></tr>
+          <tr><td><strong>2019 Renault Clio</strong></td><td style="color:var(--muted2)">16 ABD 176</td><td><span class="verdict-C">C</span></td><td style="color:var(--muted2)">Otorapor</td><td style="color:var(--muted2)">142.300</td><td style="color:var(--muted2)">04.05</td><td><span class="badge badge-yellow">İnceleme Bekliyor</span></td><td><button class="action-btn">Detay</button></td></tr>
+          <tr><td><strong>2021 VW Polo</strong></td><td style="color:var(--muted2)">34 PZ 4821</td><td><span class="verdict-A">A</span></td><td style="color:var(--muted2)">PilotGarage</td><td style="color:var(--muted2)">48.200</td><td style="color:var(--muted2)">03.05</td><td><span class="badge badge-green">Tamamlandı</span></td><td><button class="action-btn">Detay</button></td></tr>
+          <tr><td><strong>2016 Ford Focus</strong></td><td style="color:var(--muted2)">06 TK 7734</td><td><span class="verdict-C">C</span></td><td style="color:var(--muted2)">Güney Garanti</td><td style="color:var(--muted2)">218.500</td><td style="color:var(--muted2)">03.05</td><td><span class="badge badge-red">Riskli Araç</span></td><td><button class="action-btn">Detay</button></td></tr>
+        </tbody></table>
+      </div>
+    </div>
+
+    <!-- REVIEW -->
+    <div class="page" id="page-review">
+      <div class="review-card">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:.75rem">
+          <div><div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:600">2019 Renault Clio · <span style="color:var(--muted2)">16 ABD 176</span></div><div style="font-size:12px;color:var(--muted);margin-top:2px">Bugün 12:18 · Otorapor Nilüfer · #1247</div></div>
+          <span class="verdict-C">C</span>
+        </div>
+        <div class="review-finding">❓ <strong>Tanımlanamayan Bulgu:</strong> "Şanzıman kontrol lambası intermittent çalışıyor — yazılım güncellemesi önerildi"</div>
+        <div class="review-actions">
+          <select class="score-select"><option>Skor seç...</option><option>🔴 Kırmızı</option><option>🟡 Sarı</option><option>✅ Yeşil</option><option>📋 Bilgi</option></select>
+          <input type="text" placeholder="Kural açıklaması..." style="flex:1;font-size:12px">
+          <select class="score-select"><option>Skill seç...</option><option>mekanik_skill</option><option>guvenlik_skill</option><option>sarf_skill</option></select>
+          <button class="action-btn approve">✓ Kaydet</button>
+          <button class="action-btn reject">✕ Atla</button>
+        </div>
+      </div>
+      <div class="review-card">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:.75rem">
+          <div><div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:600">2016 Ford Focus · <span style="color:var(--muted2)">06 TK 7734</span></div><div style="font-size:12px;color:var(--muted);margin-top:2px">Dün 16:20 · Güney Garanti · #1244</div></div>
+          <span class="verdict-C">C</span>
+        </div>
+        <div class="review-finding">❓ <strong>Tanımlanamayan Bulgu:</strong> "DPF filtresi devre dışı bırakılmış (yazılım müdahalesi)"</div>
+        <div class="review-actions">
+          <select class="score-select"><option>Skor seç...</option><option>🔴 Kırmızı</option><option>🟡 Sarı</option><option>✅ Yeşil</option><option>📋 Bilgi</option></select>
+          <input type="text" placeholder="Kural açıklaması..." style="flex:1;font-size:12px">
+          <select class="score-select"><option>Skill seç...</option><option>mekanik_skill</option><option>guvenlik_skill</option><option>sarf_skill</option></select>
+          <button class="action-btn approve">✓ Kaydet</button>
+          <button class="action-btn reject">✕ Atla</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- YORUMLAR -->
+    <div class="page" id="page-yorumlar">
+      <div class="table-card">
+        <div class="table-header"><span class="table-title">Onay Bekleyen Yorumlar</span></div>
+        <table><thead><tr><th>Kullanıcı</th><th>İstasyon</th><th>Puan</th><th>Yorum</th><th>Tarih</th><th>İşlem</th></tr></thead>
+        <tbody>
+          <tr><td>Ahmet Y.</td><td style="color:var(--muted2)">Dynobil Osmangazi</td><td style="color:var(--yellow)">★★★★★</td><td style="color:var(--muted2);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Çok profesyonel, rapor detaylıydı...</td><td style="color:var(--muted2)">Bugün</td><td style="display:flex;gap:6px"><button class="action-btn approve">Onayla</button><button class="action-btn reject">Reddet</button></td></tr>
+          <tr><td>Mehmet K.</td><td style="color:var(--muted2)">Otorapor Nilüfer</td><td style="color:var(--yellow)">★★★☆☆</td><td style="color:var(--muted2);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Beklentimin altında kaldı...</td><td style="color:var(--muted2)">Dün</td><td style="display:flex;gap:6px"><button class="action-btn approve">Onayla</button><button class="action-btn reject">Reddet</button></td></tr>
+        </tbody></table>
+      </div>
+    </div>
+
+    <!-- İSTASYONLAR -->
+    <div class="page" id="page-istasyonlar">
+      <div style="display:flex;gap:10px;margin-bottom:1rem;flex-wrap:wrap">
+        <input type="text" placeholder="İstasyon veya şehir ara..." style="max-width:240px">
+        <select style="width:150px"><option>Tüm İller</option><option>Balıkesir</option><option>Bursa</option><option>İstanbul</option></select>
+        <select style="width:150px"><option>Tüm Franchiseler</option><option>Dynobil</option><option>Otorapor</option><option>Bağımsız</option></select>
+        <button class="btn-sm" onclick="goPage('istasyon-ekle')" style="margin-left:auto">+ İstasyon Ekle</button>
+      </div>
+      <div class="table-card">
+        <table><thead><tr><th>İstasyon</th><th>İl / İlçe</th><th>Franchise</th><th>EkspertizAI Puan</th><th>Sponsorluk</th><th>İşlem</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Dynobil Osmangazi</strong><div style="font-size:11px;color:var(--muted)">0224 000 00 00</div></td><td style="color:var(--muted2)">Bursa / Osmangazi</td><td><span class="badge badge-gray">Dynobil</span></td><td style="color:var(--yellow)">★★★★★ 4.9 <span style="color:var(--muted);font-size:11px">(124)</span></td><td><span class="badge sponsor-2">Premium</span></td><td><button class="action-btn">Düzenle</button></td></tr>
+          <tr><td><strong>Otorapor Nilüfer</strong><div style="font-size:11px;color:var(--muted)">0224 111 11 11</div></td><td style="color:var(--muted2)">Bursa / Nilüfer</td><td><span class="badge badge-gray">Otorapor</span></td><td style="color:var(--yellow)">★★★★☆ 4.3 <span style="color:var(--muted);font-size:11px">(67)</span></td><td><span class="badge sponsor-1">Basic</span></td><td><button class="action-btn">Düzenle</button></td></tr>
+          <tr><td><strong>Bulut Ekspertizlik</strong><div style="font-size:11px;color:var(--muted)">0266 000 00 00</div></td><td style="color:var(--muted2)">Balıkesir / Edremit</td><td><span class="badge badge-gray">Dynobil</span></td><td style="color:var(--yellow)">★★★★★ 4.9 <span style="color:var(--muted);font-size:11px">(38)</span></td><td><span class="badge sponsor-0">Ücretsiz</span></td><td><button class="action-btn">Düzenle</button></td></tr>
+        </tbody></table>
+      </div>
+    </div>
+
+    <!-- İSTASYON EKLE -->
+    <div class="page" id="page-istasyon-ekle">
+      <div class="form-section"><div class="form-section-title">🏢 Temel Bilgiler</div>
+        <div class="form-grid">
+          <div class="form-group"><label>İstasyon Adı *</label><input type="text" placeholder="Dynobil Osmangazi"></div>
+          <div class="form-group"><label>Franchise</label><select><option>Bağımsız</option><option>Dynobil</option><option>Otorapor</option><option>PilotGarage</option><option>Güney Garanti</option></select></div>
+          <div class="form-group"><label>İl *</label><select><option>Seç...</option><option>Balıkesir</option><option>Bursa</option><option>İstanbul</option><option>İzmir</option><option>Ankara</option></select></div>
+          <div class="form-group"><label>İlçe *</label><input type="text" placeholder="Osmangazi"></div>
+          <div class="form-group" style="grid-column:span 2"><label>Adres</label><input type="text" placeholder="Tam adres..."></div>
+        </div>
+      </div>
+      <div class="form-section"><div class="form-section-title">📞 İletişim</div>
+        <div class="form-grid">
+          <div class="form-group"><label>Telefon *</label><input type="tel" placeholder="0224 000 00 00"></div>
+          <div class="form-group"><label>E-posta</label><input type="email" placeholder="info@..."></div>
+          <div class="form-group"><label>Website</label><input type="text" placeholder="www...."></div>
+          <div class="form-group"><label>Google Maps URL</label><input type="text" placeholder="https://maps.google.com/..."></div>
+        </div>
+      </div>
+      <div class="form-section"><div class="form-section-title">🎯 Sponsorluk</div>
+        <div class="form-grid">
+          <div class="form-group"><label>Seviye</label><select><option value="0">Ücretsiz</option><option value="1">Basic — 500₺/ay</option><option value="2">Premium — 1.000₺/ay</option></select></div>
+          <div class="form-group"><label>Bitiş Tarihi</label><input type="text" placeholder="GG.AA.YYYY"></div>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn-sm" style="padding:9px 24px;font-size:13px">Kaydet</button>
+        <button class="btn-outline">Toplu Excel Aktar</button>
+      </div>
+    </div>
+
+    <!-- SPONSORLUK -->
+    <div class="page" id="page-sponsorluk">
+      <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="kpi-card"><div class="kpi-label">Premium Sponsor</div><div class="kpi-val">2</div><div class="kpi-sub neutral">₺2.000/ay gelir</div></div>
+        <div class="kpi-card"><div class="kpi-label">Basic Sponsor</div><div class="kpi-val">3</div><div class="kpi-sub neutral">₺1.500/ay gelir</div></div>
+        <div class="kpi-card"><div class="kpi-label">Toplam Sponsorluk</div><div class="kpi-val">₺3.500</div><div class="kpi-sub up">Bu ay</div></div>
+      </div>
+      <div class="table-card">
+        <div class="table-header"><span class="table-title">Aktif Sponsorluklar</span></div>
+        <table><thead><tr><th>İstasyon</th><th>Seviye</th><th>Başlangıç</th><th>Bitiş</th><th>Aylık Tutar</th><th>İşlem</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Dynobil Osmangazi</strong></td><td><span class="badge sponsor-2">Premium</span></td><td style="color:var(--muted2)">01.04.2026</td><td style="color:var(--muted2)">01.07.2026</td><td style="color:var(--green);font-weight:600">₺1.000</td><td><button class="action-btn">Düzenle</button></td></tr>
+          <tr><td><strong>Otorapor Nilüfer</strong></td><td><span class="badge sponsor-1">Basic</span></td><td style="color:var(--muted2)">15.04.2026</td><td style="color:var(--muted2)">15.05.2026</td><td style="color:var(--green);font-weight:600">₺500</td><td><button class="action-btn">Yenile</button></td></tr>
+        </tbody></table>
+      </div>
+    </div>
+
+    <!-- KULLANICILAR -->
+    <div class="page" id="page-kullanicilar">
+      <div style="display:flex;gap:10px;margin-bottom:1rem">
+        <input type="text" placeholder="İsim veya telefon ara..." style="max-width:260px">
+      </div>
+      <div class="table-card">
+        <table><thead><tr><th>Kullanıcı</th><th>Telefon</th><th>Kayıt</th><th>Analiz</th><th>Analiz Hakkı</th><th>Davetler</th><th>KVKK</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Ahmet Yılmaz</strong></td><td style="color:var(--muted2)">+90 532 *** 47</td><td style="color:var(--muted2)">01.04.2026</td><td>7</td><td style="color:var(--green);font-weight:600">3</td><td>2</td><td><span class="badge badge-green">Onaylı</span></td></tr>
+          <tr><td><strong>Mehmet Kaya</strong></td><td style="color:var(--muted2)">+90 544 *** 12</td><td style="color:var(--muted2)">15.04.2026</td><td>2</td><td>1</td><td>0</td><td><span class="badge badge-green">Onaylı</span></td></tr>
+        </tbody></table>
+      </div>
+    </div>
+
+    <!-- DANIŞMANLIK -->
+    <div class="page" id="page-danismanlik">
+      <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="kpi-card"><div class="kpi-label">Bekleyen Talepler</div><div class="kpi-val" style="color:var(--yellow)">2</div></div>
+        <div class="kpi-card"><div class="kpi-label">Bu Ay Tamamlanan</div><div class="kpi-val">69</div></div>
+        <div class="kpi-card"><div class="kpi-label">Bu Ay Gelir</div><div class="kpi-val">₺13.800</div></div>
+      </div>
+      <div class="table-card">
+        <div class="table-header"><span class="table-title">Danışmanlık Talepleri</span></div>
+        <table><thead><tr><th>Kullanıcı</th><th>Araç</th><th>Tercih Saati</th><th>Tutar</th><th>Uzman</th><th>Durum</th><th>İşlem</th></tr></thead>
+        <tbody>
+          <tr><td>Ahmet Y.<div style="font-size:11px;color:var(--muted)">+90 532 *** 47</div></td><td style="color:var(--muted2)">2017 BMW 320i</td><td style="color:var(--muted2)">05.05 14:00</td><td style="color:var(--green);font-weight:600">₺199</td><td><span class="badge badge-gray">Atanmadı</span></td><td><span class="badge badge-yellow">Bekliyor</span></td><td><button class="action-btn">Uzman Ata</button></td></tr>
+          <tr><td>Fatma D.<div style="font-size:11px;color:var(--muted)">+90 545 *** 12</div></td><td style="color:var(--muted2)">2019 Renault Clio</td><td style="color:var(--muted2)">06.05 10:00</td><td style="color:var(--green);font-weight:600">₺199</td><td><span class="badge badge-green">Burax Y.</span></td><td><span class="badge badge-blue">Planlandı</span></td><td><button class="action-btn">Detay</button></td></tr>
+        </tbody></table>
+      </div>
+    </div>
+
+    <!-- UZMANLAR -->
+    <div class="page" id="page-uzmanlar">
+      <div class="table-card">
+        <div class="table-header"><span class="table-title">Uzman Listesi</span><button class="btn-sm">+ Uzman Ekle</button></div>
+        <table><thead><tr><th>Ad Soyad</th><th>Telefon</th><th>Toplam Görüşme</th><th>Puan</th><th>Durum</th><th>İşlem</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Burax Yönetici</strong></td><td style="color:var(--muted2)">+90 266 *** 00</td><td>47</td><td style="color:var(--yellow)">★★★★★ 4.9</td><td><span class="badge badge-green">Aktif</span></td><td><button class="action-btn">Düzenle</button></td></tr>
+        </tbody></table>
+      </div>
+    </div>
+
+    <!-- SKILL -->
+    <div class="page" id="page-skill">
+      <div class="table-card">
+        <div class="table-header"><span class="table-title">Skill Dosyaları</span></div>
+        <table><thead><tr><th>Dosya</th><th>Son Güncelleme</th><th>Kural Sayısı</th><th>İşlem</th></tr></thead>
+        <tbody>
+          <tr><td><strong>guvenlik_skill.md</strong></td><td style="color:var(--muted2)">2 Mayıs 2026</td><td>18</td><td><button class="action-btn">Düzenle</button></td></tr>
+          <tr><td><strong>mekanik_skill.md</strong></td><td style="color:var(--muted2)">4 Mayıs 2026</td><td>32</td><td><button class="action-btn">Düzenle</button></td></tr>
+          <tr><td><strong>sarf_skill.md</strong></td><td style="color:var(--muted2)">2 Mayıs 2026</td><td>24</td><td><button class="action-btn">Düzenle</button></td></tr>
+          <tr><td><strong>kaporta_skill.md</strong></td><td style="color:var(--muted2)">4 Mayıs 2026</td><td>16</td><td><button class="action-btn">Düzenle</button></td></tr>
+          <tr><td><strong>idari_skill.md</strong></td><td style="color:var(--muted2)">2 Mayıs 2026</td><td>10</td><td><button class="action-btn">Düzenle</button></td></tr>
+        </tbody></table>
+      </div>
+      <div class="table-card">
+        <div class="table-header"><span class="table-title">Öğrenme Kaydı</span></div>
+        <table><thead><tr><th>Bulgu</th><th>Verilen Skor</th><th>Skill</th><th>Tarih</th></tr></thead>
+        <tbody>
+          <tr><td style="color:var(--muted2)">DSG şanzımanda titreşim</td><td><span class="badge badge-yellow">Sarı</span></td><td style="color:var(--muted2)">mekanik</td><td style="color:var(--muted2)">Dün</td></tr>
+          <tr><td style="color:var(--muted2)">DPF yazılım iptali</td><td><span class="badge badge-red">Kırmızı</span></td><td style="color:var(--muted2)">mekanik</td><td style="color:var(--muted2)">3 gün önce</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+
+    <!-- HARİCİ RAPORLAR -->
+    <div class="page" id="page-harici-raporlar">
+      <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="kpi-card"><div class="kpi-label">Onay Bekleyen</div><div class="kpi-val" style="color:var(--yellow)">4</div><div class="kpi-sub neutral">İnceleme gerekiyor</div></div>
+        <div class="kpi-card"><div class="kpi-label">Bu Ay Onaylanan</div><div class="kpi-val">23</div><div class="kpi-sub up">+23 arşiv raporu</div></div>
+        <div class="kpi-card"><div class="kpi-label">Toplam Katkı</div><div class="kpi-val">87</div><div class="kpi-sub neutral">Kullanıcı yükledi</div></div>
+      </div>
+      <div class="table-card">
+        <div class="table-header"><span class="table-title">Onay Bekleyen Harici Raporlar</span></div>
+        <table><thead><tr><th>Kullanıcı</th><th>Yükleme Tarihi</th><th>Dosya</th><th>Yasal Kabul</th><th>Durum</th><th>İşlem</th></tr></thead>
+        <tbody>
+          <tr>
+            <td>Ahmet Y.<div style="font-size:11px;color:var(--muted)">+90 532 *** 47</div></td>
+            <td style="color:var(--muted2)">04.05.2026 14:12</td>
+            <td><button class="action-btn">PDF Görüntüle</button></td>
+            <td><span class="badge badge-green">✓ Kabul Edildi</span></td>
+            <td><span class="badge badge-yellow">Bekliyor</span></td>
+            <td style="display:flex;gap:6px">
+              <button class="action-btn approve">✓ Onayla (+1 hak)</button>
+              <button class="action-btn reject">✕ Reddet</button>
+            </td>
+          </tr>
+          <tr>
+            <td>Mehmet K.<div style="font-size:11px;color:var(--muted)">+90 544 *** 12</div></td>
+            <td style="color:var(--muted2)">03.05.2026 18:45</td>
+            <td><button class="action-btn">PDF Görüntüle</button></td>
+            <td><span class="badge badge-green">✓ Kabul Edildi</span></td>
+            <td><span class="badge badge-yellow">Bekliyor</span></td>
+            <td style="display:flex;gap:6px">
+              <button class="action-btn approve">✓ Onayla (+1 hak)</button>
+              <button class="action-btn reject">✕ Reddet</button>
+            </td>
+          </tr>
+          <tr>
+            <td>Fatma D.<div style="font-size:11px;color:var(--muted)">+90 545 *** 89</div></td>
+            <td style="color:var(--muted2)">03.05.2026 11:20</td>
+            <td><button class="action-btn">PDF Görüntüle</button></td>
+            <td><span class="badge badge-green">✓ Kabul Edildi</span></td>
+            <td><span class="badge badge-yellow">Bekliyor</span></td>
+            <td style="display:flex;gap:6px">
+              <button class="action-btn approve">✓ Onayla (+1 hak)</button>
+              <button class="action-btn reject">✕ Reddet</button>
+            </td>
+          </tr>
+        </tbody></table>
+      </div>
+      <div class="table-card">
+        <div class="table-header"><span class="table-title">Son Onaylanan Harici Raporlar</span></div>
+        <table><thead><tr><th>Kullanıcı</th><th>Onay Tarihi</th><th>Ödül Verildi</th></tr></thead>
+        <tbody>
+          <tr><td>Can S.</td><td style="color:var(--muted2)">02.05.2026</td><td><span class="badge badge-green">+1 Analiz Hakkı</span></td></tr>
+          <tr><td>Zeynep A.</td><td style="color:var(--muted2)">01.05.2026</td><td><span class="badge badge-green">+1 Analiz Hakkı</span></td></tr>
+        </tbody></table>
+      </div>
+    </div>
+
+    <!-- ÇELİŞKİ TESPİTİ -->
+    <div class="page" id="page-celisiki">
+      <div class="alert" style="background:rgba(232,85,85,.1);border-color:rgba(232,85,85,.3)">
+        <span style="font-size:18px">⚠️</span>
+        <span style="font-size:13px;line-height:1.5">Sistemde <strong>7 araç</strong> için çelişkili rapor tespit edildi. Bu araçları inceleyin ve gerekirse kullanıcıları uyarın.</span>
+      </div>
+
+      <!-- İNDİRİM KONTROLÜ -->
+      <div class="form-section" style="margin-bottom:1.5rem">
+        <div class="form-section-title">🏷️ Paket İndirim Oranı</div>
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <div style="font-size:13px;color:var(--muted2)">Çelişkili rapor paketi için geçerli indirim:</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <input type="number" value="20" min="0" max="50" style="width:80px" id="discountInput">
+            <span style="font-size:13px;color:var(--muted2)">%</span>
+            <button class="btn-sm" onclick="saveDiscount()">Kaydet</button>
+          </div>
+          <div style="font-size:12px;color:var(--muted);background:var(--surface2);border-radius:8px;padding:6px 12px">Maks. %50 · Şu an aktif: <strong style="color:var(--accent2)">%20</strong></div>
+        </div>
+      </div>
+
+      <!-- ÇELİŞKİLİ ARAÇLAR -->
+      <div class="table-card">
+        <div class="table-header"><span class="table-title">Çelişkili Rapor Tespitleri</span></div>
+        <table><thead><tr><th>Plaka</th><th>Araç</th><th>Rapor Sayısı</th><th>Çelişki Türü</th><th>Şiddet</th><th>İşlem</th></tr></thead>
+        <tbody>
+          <tr>
+            <td style="font-family:'Syne',sans-serif;font-weight:600">16 ABD 176</td>
+            <td style="color:var(--muted2)">2019 Renault Clio</td>
+            <td>3</td>
+            <td>
+              <div style="font-size:11px;color:var(--red)">⚠ Kilometre düşüşü</div>
+              <div style="font-size:11px;color:var(--yellow)">⚠ Kaporta çelişkisi</div>
+            </td>
+            <td><span class="badge badge-red">KRİTİK</span></td>
+            <td><button class="action-btn">Detay & Raporlar</button></td>
+          </tr>
+          <tr>
+            <td style="font-family:'Syne',sans-serif;font-weight:600">34 TK 4521</td>
+            <td style="color:var(--muted2)">2018 Toyota Corolla</td>
+            <td>2</td>
+            <td><div style="font-size:11px;color:var(--yellow)">⚠ Yağ/duman çelişkisi</div></td>
+            <td><span class="badge badge-yellow">YÜKSEK</span></td>
+            <td><button class="action-btn">Detay & Raporlar</button></td>
+          </tr>
+          <tr>
+            <td style="font-family:'Syne',sans-serif;font-weight:600">06 BC 9912</td>
+            <td style="color:var(--muted2)">2016 Honda Civic</td>
+            <td>2</td>
+            <td>
+              <div style="font-size:11px;color:var(--red)">⚠ Şase çelişkisi</div>
+            </td>
+            <td><span class="badge badge-red">KRİTİK</span></td>
+            <td><button class="action-btn">Detay & Raporlar</button></td>
+          </tr>
+        </tbody></table>
+      </div>
+    </div>
+
+    <!-- AYARLAR -->
+    <div class="page" id="page-ayarlar">
+      <div class="form-section"><div class="form-section-title">⚙️ Sistem Ayarları</div>
+        <div class="form-grid">
+          <div class="form-group"><label>Ücretsiz Analiz Limiti</label><input type="number" value="1"></div>
+          <div class="form-group"><label>Maks. Dosya Boyutu (MB)</label><input type="number" value="10"></div>
+          <div class="form-group"><label>Danışmanlık Ücreti (₺)</label><input type="number" value="199"></div>
+          <div class="form-group"><label>Premium Rapor (₺)</label><input type="number" value="129"></div>
+          <div class="form-group"><label>Arşiv Erişim (₺)</label><input type="number" value="79"></div>
+          <div class="form-group"><label>Referans Ödül Eşiği</label><input type="number" value="3"></div>
+        </div>
+      </div>
+      <div class="form-section"><div class="form-section-title">🔔 Bütçe Uyarı Eşikleri</div>
+        <div class="form-grid">
+          <div class="form-group"><label>Anthropic Günlük Uyarı ($)</label><input type="number" value="5"></div>
+          <div class="form-group"><label>Anthropic Günlük Kritik ($)</label><input type="number" value="8"></div>
+          <div class="form-group"><label>Netgsm SMS Uyarı</label><input type="number" value="800"></div>
+          <div class="form-group"><label>Supabase DB Uyarı (MB)</label><input type="number" value="400"></div>
+        </div>
+      </div>
+      <div class="form-actions"><button class="btn-sm" style="padding:9px 24px;font-size:13px">Ayarları Kaydet</button></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const titles={dashboard:'Dashboard',gelir:'Gelir & Muhasebe',raporlar:'Raporlar',review:'Review Kuyruğu',yorumlar:'Yorumlar',istasyonlar:'İstasyon Listesi','istasyon-ekle':'İstasyon Ekle',sponsorluk:'Sponsorluklar',kullanicilar:'Kullanıcılar',danismanlik:'Danışmanlık',uzmanlar:'Uzmanlar','harici-raporlar':'Harici Raporlar',celisiki:'Çelişki Tespiti',skill:'Skill Yönetimi',ayarlar:'Ayarlar'};
+function saveDiscount(){const v=document.getElementById('discountInput').value;if(v<0||v>50){alert('İndirim 0-50 arası olmalı');return;}alert('%'+v+' indirim kaydedildi.');}
+function goPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const page=document.getElementById('page-'+id);
+  if(page)page.classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>{if(n.getAttribute('onclick')===`goPage('${id}')`)n.classList.add('active');});
+  document.getElementById('topbar-title').textContent=titles[id]||id;
+}
+const d=new Date();
+document.getElementById('topbar-date').textContent=d.toLocaleDateString('tr-TR',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+</script>
+</body>
+</html>
+<!-- Bu satırları admin panelindeki </div></div> öncesine ekle -->
