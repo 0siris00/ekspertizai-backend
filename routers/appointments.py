@@ -8,7 +8,7 @@ from utils.telegram import notify_admin
 router = APIRouter()
 
 class AppointmentRequest(BaseModel):
-    user_id: str
+    user_id: Optional[str] = None
     user_phone: str
     user_name: Optional[str] = None
     station_name: str
