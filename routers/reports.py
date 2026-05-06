@@ -1,40 +1,36 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException
-from fastapi.responses import JSONResponse
-import tempfile, os
-from agents.orchestrator import analyze_report
+from fastapi import APIRouter, HTTPException
+from typing import Optional
+from datetime import datetime
+from utils.supabase_client import get_supabase
 
 router = APIRouter()
 
-ALLOWED_TYPES = {
-    "application/pdf": "pdf",
-    "image/jpeg": "image",
-    "image/jpg": "image",
-    "image/png": "image"
-}
-MAX_SIZE = 10 * 1024 * 1024
+@router.get("/reports")
+async def list_reports(limit: int = 50, offset: int = 0, status: Optional[str] = None):
+    db = get_supabase()
+    query = db.table("reports").select("*").order("created_at", desc=True).range(offset, offset+limit-1)
+    if status:
+        query = query.eq("status", status)
+    result = query.execute()
+    return {"reports": result.data, "total": len(result.data)}
 
-@router.post("/upload-and-analyze")
-async def upload_and_analyze(file: UploadFile = File(...), user_id: str = "anonymous"):
-    if file.content_type not in ALLOWED_TYPES:
-        raise HTTPException(status_code=400, detail="Sadece PDF, JPG veya PNG dosyası yükleyebilirsiniz.")
-    file_type = ALLOWED_TYPES[file.content_type]
-    contents = await file.read()
-    if len(contents) > MAX_SIZE:
-        raise HTTPException(status_code=400, detail="Dosya boyutu 10MB'ı geçemez.")
-    suffix = ".pdf" if file_type == "pdf" else ".jpg"
-    with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-        tmp.write(contents)
-        tmp_path = tmp.name
-    try:
-        result = await analyze_report(file_path=tmp_path, file_type=file_type, user_id=user_id)
-        if result["success"]:
-            return JSONResponse(content=result["data"])
-        else:
-            raise HTTPException(status_code=500, detail=result.get("error", "Analiz başarısız"))
-    finally:
-        if os.path.exists(tmp_path):
-            os.unlink(tmp_path)
-
-@router.get("/{report_id}")
+@router.get("/reports/{report_id}")
 async def get_report(report_id: str):
-    return {"message": "Faz 2'de aktif edilecek", "report_id": report_id}
+    db = get_supabase()
+    result = db.table("reports").select("*").eq("id", report_id).execute()
+    if not result.data:
+        raise HTTPException(status_code=404, detail="Rapor bulunamadı")
+    return result.data[0]
+
+@router.get("/reports/by-plate/{plaka}")
+async def get_reports_by_plate(plaka: str):
+    db = get_supabase()
+    clean = plaka.upper().replace(" ", "")
+    result = db.table("reports").select("*").eq("plaka", clean).order("created_at", desc=True).execute()
+    return {"reports": result.data, "count": len(result.data)}
+
+@router.put("/reports/{report_id}/status")
+async def update_report_status(report_id: str, status: str):
+    db = get_supabase()
+    db.table("reports").update({"status": status, "updated_at": datetime.now().isoformat()}).eq("id", report_id).execute()
+    return {"success": True}

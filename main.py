@@ -1,42 +1,54 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from contextlib import asynccontextmanager
 from dotenv import load_dotenv
-import os
-
 load_dotenv()
 
-app = FastAPI(title="EkspertizAI API", version="2.0.0")
+from routers.reports import router as reports_router
+from routers.analysis import router as analysis_router
+from routers.consultation import router as consultation_router
+from routers.admin import router as admin_router
+from routers.stations import router as stations_router
+from routers.webhook import router as webhook_router
+from routers.reviews import router as reviews_router
+from routers.referrals import router as referrals_router
+from routers.users import router as users_router
+from routers.archive import router as archive_router
+from routers.appointments import router as appointments_router
+from utils.telegram import notify_admin
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await notify_admin("🚀 EkspertizAI başlatıldı")
+    yield
+
+app = FastAPI(title="EkspertizAI API", version="1.0.0", lifespan=lifespan, docs_url=None, redoc_url=None)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://ekspertizai.com", "https://www.ekspertizai.com"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-from routers import reports, analysis, consultation, admin, stations, webhook, reviews, referrals, users
-
-app.include_router(reports.router, prefix="/api/reports", tags=["Raporlar"])
-app.include_router(analysis.router, prefix="/api/analysis", tags=["Analiz"])
-app.include_router(consultation.router, prefix="/api/consultation", tags=["Danışmanlık"])
-app.include_router(admin.router, prefix="/api/admin", tags=["Yönetim"])
-app.include_router(stations.router, prefix="/api/stations", tags=["İstasyonlar"])
-app.include_router(webhook.router, prefix="/api/webhook", tags=["Webhook"])
-app.include_router(reviews.router, prefix="/api/reviews", tags=["Yorumlar"])
-app.include_router(referrals.router, prefix="/api/referrals", tags=["Referans"])
-app.include_router(users.router, prefix="/api/users", tags=["Kullanıcılar"])
-
-@app.get("/")
-def root():
-    return {"status": "ok", "service": "EkspertizAI", "version": "2.0.0"}
+app.include_router(reports_router, prefix="/api/v1", tags=["reports"])
+app.include_router(analysis_router, prefix="/api/v1", tags=["analysis"])
+app.include_router(consultation_router, prefix="/api/v1", tags=["consultation"])
+app.include_router(admin_router, prefix="/api/v1/admin", tags=["admin"])
+app.include_router(stations_router, prefix="/api/v1", tags=["stations"])
+app.include_router(webhook_router, prefix="/api/v1", tags=["webhook"])
+app.include_router(reviews_router, prefix="/api/v1", tags=["reviews"])
+app.include_router(referrals_router, prefix="/api/v1", tags=["referrals"])
+app.include_router(users_router, prefix="/api/v1", tags=["users"])
+app.include_router(archive_router, prefix="/api/v1", tags=["archive"])
+app.include_router(appointments_router, prefix="/api/v1", tags=["appointments"])
 
 @app.get("/health")
-def health():
-    return {"status": "healthy"}
+async def health():
+    return {"status": "healthy", "version": "1.0.0"}
 
-@app.on_event("startup")
-async def startup():
-    from utils.telegram import notify_admin
-    await notify_admin("🚀 EkspertizAI sunucusu başlatıldı!")
-    print("🚀 EkspertizAI başlatıldı")
+@app.get("/")
+async def root():
+    return JSONResponse({"message": "EkspertizAI API"})
