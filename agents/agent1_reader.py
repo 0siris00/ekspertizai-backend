@@ -83,3 +83,39 @@ async def run(file_path: str, file_type: str) -> dict:
     categories = detect_categories(raw_text)
     masked_text = mask_personal_data(raw_text)
     return {"raw_text": raw_text, "masked_text": masked_text, "vehicle_info": vehicle_info, "categories": categories}
+
+def parse_report_text(text: str) -> dict:
+    """Metin girişinden rapor parse et — dosya gerektirmez"""
+    import re
+    vehicle_info = {
+        "plaka": None, "marka": None, "model": None,
+        "yil": None, "km": None, "yakit": None, "vites": None,
+        "ekspertiz_firmasi": None
+    }
+    # Plaka
+    plaka = re.search(r'\b\d{2}\s?[A-ZÇĞİÖŞÜ]{1,3}\s?\d{2,4}\b', text)
+    if plaka: vehicle_info["plaka"] = plaka.group().replace(" ","")
+    # KM
+    km = re.search(r'KM[:\s]*([0-9.,]+)', text, re.IGNORECASE)
+    if km: vehicle_info["km"] = int(km.group(1).replace(".","").replace(",",""))
+    # Araç bilgisi
+    arac = re.search(r'Araç[:\s]*([^\|]+)', text, re.IGNORECASE)
+    if arac:
+        parts = arac.group(1).strip().split()
+        if len(parts) >= 1: vehicle_info["marka"] = parts[0]
+        if len(parts) >= 2: vehicle_info["model"] = parts[1]
+    # Yakıt/Vites
+    if "Benzin" in text: vehicle_info["yakit"] = "Benzin"
+    elif "Dizel" in text or "Diesel" in text: vehicle_info["yakit"] = "Dizel"
+    if "Manuel" in text: vehicle_info["vites"] = "Manuel"
+    elif "Otomatik" in text: vehicle_info["vites"] = "Otomatik"
+
+    categories = {
+        "guvenlik": True, "mekanik": True,
+        "sarf": True, "kaporta": True, "idari": True
+    }
+    return {
+        "vehicle_info": vehicle_info,
+        "masked_text": text,
+        "categories": categories
+    }

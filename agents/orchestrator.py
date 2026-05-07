@@ -62,3 +62,22 @@ async def save_to_supabase(client, report_id, user_id, vehicle_info, analysis):
         }).execute()
     except Exception as e:
         print(f"Supabase kayıt hatası: {e}")
+
+async def analyze_text(report_text: str, user_id: str, supabase_client=None) -> dict:
+    """Direkt metin girişi ile analiz — dosya gerektirmez"""
+    from agents.agent1_reader import parse_report_text
+    report_id = str(uuid.uuid4())
+    try:
+        reader_result = parse_report_text(report_text)
+        vehicle_info = reader_result["vehicle_info"]
+        masked_text = reader_result["masked_text"]
+        categories = reader_result["categories"]
+        category_results = await run_parallel(masked_text, vehicle_info, categories)
+        final_report = await agent6_run(category_results, vehicle_info, masked_text)
+        final_report["vehicleInfo"] = vehicle_info
+        final_report["reportId"] = report_id
+        if supabase_client:
+            await save_to_supabase(supabase_client, report_id, user_id, vehicle_info, final_report)
+        return {"success": True, "data": final_report}
+    except Exception as e:
+        return {"success": False, "error": str(e), "reportId": report_id}
