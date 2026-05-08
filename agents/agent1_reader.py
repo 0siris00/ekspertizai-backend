@@ -16,9 +16,29 @@ def extract_text_from_pdf(file_path: str) -> str:
 
 def extract_text_from_image(file_path: str) -> str:
     client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+    ext = Path(file_path).suffix.lower()
+    if ext == ".pdf":
+        import fitz
+        doc = fitz.open(file_path)
+        all_text = []
+        for page_num in range(min(len(doc), 3)):
+            page = doc[page_num]
+            pix = page.get_pixmap(matrix=fitz.Matrix(1.5, 1.5))
+            img_bytes = pix.tobytes("jpeg")
+            if len(img_bytes) > 4*1024*1024:
+                pix = page.get_pixmap(matrix=fitz.Matrix(1, 1))
+                img_bytes = pix.tobytes("jpeg")
+            image_data = base64.b64encode(img_bytes).decode("utf-8")
+            resp = client.messages.create(model="claude-haiku-4-5", max_tokens=2000,
+                messages=[{"role":"user","content":[
+                    {"type":"image","source":{"type":"base64","media_type":"image/jpeg","data":image_data}},
+                    {"type":"text","text":"Bu ekspertiz raporu sayfasindaki tum metni yaz."}
+                ]}])
+            all_text.append(resp.content[0].text)
+        doc.close()
+        return "\n".join(all_text)
     with open(file_path, "rb") as f:
         image_data = base64.b64encode(f.read()).decode("utf-8")
-    ext = Path(file_path).suffix.lower()
     media_type = "image/jpeg" if ext in [".jpg", ".jpeg"] else "image/png"
     response = client.messages.create(
         model="claude-haiku-4-5",

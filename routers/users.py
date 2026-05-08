@@ -11,6 +11,7 @@ class UserCreate(BaseModel):
     phone: str
     name: Optional[str] = None
     referral_code: Optional[str] = None
+    password: Optional[str] = None
 
 @router.post("/users/register")
 async def register_user(data: UserCreate):
@@ -32,6 +33,7 @@ async def register_user(data: UserCreate):
         "free_analyses": 1,
         "total_analyses": 0,
         "invite_count": 0,
+        "password": data.password,
         "created_at": datetime.now().isoformat()
     }
     result = db.table("users").insert(user).execute()
@@ -73,3 +75,18 @@ async def use_analysis(user_id: str):
         raise HTTPException(status_code=402, detail="Analiz hakkı kalmadı")
     db.table("users").update({"free_analyses": free - 1, "total_analyses": user.data[0].get("total_analyses", 0) + 1}).eq("id", user_id).execute()
     return {"success": True, "remaining": free - 1}
+
+class UserLogin(BaseModel):
+    phone: str
+    password: str
+
+@router.post("/users/login")
+async def login_user(data: UserLogin):
+    db = get_supabase()
+    result = db.table("users").select("*").eq("phone", data.phone).execute()
+    if not result.data:
+        raise HTTPException(status_code=401, detail="Telefon veya şifre hatalı")
+    user = result.data[0]
+    if user.get("password") != data.password:
+        raise HTTPException(status_code=401, detail="Telefon veya şifre hatalı")
+    return {"user_id": user["id"], "name": user.get("name",""), "referral_code": user.get("referral_code","")}

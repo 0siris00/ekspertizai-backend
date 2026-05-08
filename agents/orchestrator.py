@@ -81,3 +81,26 @@ async def analyze_text(report_text: str, user_id: str, supabase_client=None) -> 
         return {"success": True, "data": final_report}
     except Exception as e:
         return {"success": False, "error": str(e), "reportId": report_id}
+
+async def analyze_report_smart(file_path: str, file_type: str, user_id: str, supabase_client=None) -> dict:
+    from agents.agent1_reader import extract_text_from_pdf, extract_text_from_image, parse_vehicle_info, detect_categories, mask_personal_data
+    report_id = str(uuid.uuid4())
+    try:
+        if file_type == "pdf":
+            raw_text = extract_text_from_pdf(file_path)
+            if len(raw_text.strip()) < 100:
+                raw_text = extract_text_from_image(file_path)
+        else:
+            raw_text = extract_text_from_image(file_path)
+        vehicle_info = parse_vehicle_info(raw_text)
+        categories = detect_categories(raw_text)
+        masked_text = mask_personal_data(raw_text)
+        if not any(categories.values()):
+            categories = {"guvenlik": True, "mekanik": True, "sarf": True, "kaporta": True, "idari": True}
+        category_results = await run_parallel(masked_text, vehicle_info, categories)
+        final_report = await agent6_run(category_results, vehicle_info, masked_text)
+        final_report["vehicleInfo"] = vehicle_info
+        final_report["reportId"] = report_id
+        return {"success": True, "data": final_report}
+    except Exception as e:
+        return {"success": False, "error": str(e), "reportId": report_id}
