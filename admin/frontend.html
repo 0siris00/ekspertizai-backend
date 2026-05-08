@@ -508,49 +508,6 @@ textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);b
   </div>
 </div>
 
-<!-- RAPOR YÜKLEME EKRANI -->
-<div class="screen" id="screen-upload">
-  <div style="padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
-    <button onclick="navTab('home')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px">←</button>
-    <span style="font-family:'Syne',sans-serif;font-weight:600;font-size:16px">Raporu Analiz Et</span>
-  </div>
-  <div style="max-width:560px;margin:0 auto;padding:1.5rem 1.5rem 3rem">
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem;font-size:13px;color:var(--muted);line-height:1.6">
-      📋 Ekspertiz raporunuzun PDF veya fotoğrafını yükleyin. Yapay zeka raporunuzu analiz edecek.
-    </div>
-
-    <!-- PDF Yükleme -->
-    <div id="pdf-drop-zone" style="background:var(--surface);border:2px dashed var(--border2);border-radius:var(--radius);padding:2rem;text-align:center;margin-bottom:.75rem;cursor:pointer;transition:.2s" onclick="document.getElementById('pdf-input').click()" ondragover="event.preventDefault();this.style.borderColor='var(--accent)'" ondragleave="this.style.borderColor='var(--border2)'" ondrop="handleFileDrop(event)">
-      <div style="font-size:36px;margin-bottom:.75rem">📄</div>
-      <div style="font-size:14px;font-weight:500;margin-bottom:.3rem">PDF Rapor Yükle</div>
-      <div style="font-size:12px;color:var(--muted)">Tıkla veya sürükle bırak</div>
-      <input type="file" id="pdf-input" accept=".pdf,image/*" style="display:none" onchange="handleFileSelect(this)">
-    </div>
-
-    <div style="text-align:center;font-size:12px;color:#444;margin:.5rem 0">— veya —</div>
-
-    <!-- Fotoğraf Yükleme -->
-    <div style="background:var(--surface);border:2px dashed var(--border2);border-radius:var(--radius);padding:1.5rem;text-align:center;margin-bottom:1.25rem;cursor:pointer;transition:.2s" onclick="document.getElementById('img-input').click()">
-      <div style="font-size:28px;margin-bottom:.5rem">📸</div>
-      <div style="font-size:13px;font-weight:500;margin-bottom:.2rem">Rapor Fotoğrafı Çek/Yükle</div>
-      <div style="font-size:12px;color:var(--muted)">JPG, PNG desteklenir</div>
-      <input type="file" id="img-input" accept="image/*" capture="environment" style="display:none" onchange="handleFileSelect(this)">
-    </div>
-
-    <!-- Seçilen dosya göster -->
-    <div id="selected-file-info" style="display:none;background:rgba(76,175,125,.1);border:1px solid rgba(76,175,125,.25);border-radius:10px;padding:.75rem 1rem;margin-bottom:1rem;font-size:13px;color:var(--green);display:flex;align-items:center;gap:8px">
-      <span>✓</span><span id="selected-file-name">Dosya seçildi</span>
-    </div>
-
-    <button id="analyze-btn" onclick="startUploadAnaliz()" disabled style="width:100%;background:var(--accent);color:#fff;border:none;padding:13px;border-radius:var(--radius);font-family:'Syne',sans-serif;font-size:15px;font-weight:600;cursor:not-allowed;opacity:.5;transition:.2s">Analiz Et</button>
-
-    <div style="text-align:center;margin-top:1rem">
-      <span style="font-size:12px;color:#555">Dosya yüklemek istemiyorum — </span>
-      <span style="font-size:12px;color:var(--accent);cursor:pointer;text-decoration:underline" onclick="loadDemo(null,currentUserId)">metin olarak gir →</span>
-    </div>
-  </div>
-</div>
-
 <!-- RAPOR LOADING -->
 <div class="loading-state" id="loadingSection">
   <div class="spinner"></div>
@@ -575,6 +532,10 @@ textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);b
 <!-- PROFİL -->
 <div class="screen" id="screen-profil">
   <div style="max-width:680px;margin:0 auto;padding:1.5rem 1.5rem 3rem">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem">
+      <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700">Profilim</div>
+      <button onclick="cikisYap()" style="background:rgba(232,85,85,.1);border:1px solid rgba(232,85,85,.3);color:var(--red);font-size:12px;padding:6px 14px;border-radius:8px;cursor:pointer;font-family:'DM Sans',sans-serif">Çıkış Yap</button>
+    </div>
     <div class="profile-card">
       <div style="display:flex;align-items:center;gap:14px;margin-bottom:1.25rem">
         <div class="avatar">AY</div>
@@ -597,7 +558,7 @@ textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);b
     <div class="section-title-sm" style="margin:1.5rem 0 .75rem">ÖDÜLLERİM</div>
     <div class="prize-card"><div style="font-size:22px">🎯</div><div style="flex:1"><div style="font-size:14px;font-weight:500">Ücretsiz Rapor Analizi</div><div style="font-size:12px;color:var(--muted)">Kura ödülü · 12 Nisan 2026</div></div><span class="prize-badge">Aktif</span></div>
     <div class="prize-card"><div style="font-size:22px">📞</div><div style="flex:1"><div style="font-size:14px;font-weight:500">Uzman Görüşmesi</div><div style="font-size:12px;color:var(--muted)">Kura ödülü · 2 Mart 2026</div></div><span class="prize-badge used">Kullanıldı</span></div>
-    <div class="section-title-sm" style="margin:1.5rem 0 .75rem">ANALİZLERİM</div>
+    <div class="section-title-sm" style="margin:1.5rem 0 .75rem" data-section="analizlerim">ANALİZLERİM</div>
     <div class="report-card"><div class="verdict-dot vd-B">B</div><div style="flex:1"><div style="font-size:14px;font-weight:500">2017 BMW 320i</div><div style="font-size:12px;color:var(--muted)">34 AB 1234 · 28 Nisan 2026</div></div><div style="font-size:12px;color:var(--muted)">PDF ↓</div></div>
     <div class="report-card"><div class="verdict-dot vd-A">A</div><div style="flex:1"><div style="font-size:14px;font-weight:500">2020 Toyota Corolla</div><div style="font-size:12px;color:var(--muted)">16 TK 5678 · 15 Nisan 2026</div></div><div style="font-size:12px;color:var(--muted)">PDF ↓</div></div>
   </div>
@@ -607,175 +568,7 @@ textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);b
   
 </div>
 
-<script>
-// RAPOR KORUMA
-document.addEventListener('contextmenu', e => {
-  const target = e.target.closest('.result-state, .screen#screen-arac-sonuc');
-  if(target) e.preventDefault();
-});
-document.addEventListener('keydown', e => {
-  if((e.ctrlKey||e.metaKey) && ['s','p','u','a'].includes(e.key.toLowerCase())) {
-    const active = document.querySelector('.result-state.active, .screen.active#screen-arac-sonuc');
-    if(active) e.preventDefault();
-  }
-});
-// Metin seçimini engelle (sadece rapor içinde)
-const style = document.createElement('style');
-style.textContent = '.result-state { user-select:none; -webkit-user-select:none; } #screen-arac-sonuc .station-grid { user-select:none; }';
-document.head.appendChild(style);
-
-const REPORT_TEXT=`Araç: 2013 KIA SPORTAGE | Plaka: 26B6537 | KM: 118.303 | Manuel Benzin\nNOTLAR:\n- KARTERDE YAĞ SIZINTISI MEVCUT\n- ROTİLLERDE DEFORMASYON MEVCUT\n- PERİYODİK BAKIM ÖNERİLİR\nŞASE: Tüm şase ve podye parçaları ORİJİNAL\nSAĞ ÖN ÇAMURLUK: ORİJİNAL GÖÇÜK ONARIM`;
-const SYSTEM_PROMPT=`Sen EkspertizAI sistemisin. Raporu analiz et, SADECE JSON döndür:\n{"verdict":"","verdictLabel":"","summary":"3-4 cümle sade Türkçe","categories":[{"name":"Güvenlik","score":"green","scoreLabel":"İYİ","findings":[{"text":"bulgu","level":"green"}]}],"costs":[{"label":"kalem","amount":"X – Y ₺","urgent":true}],"totalCostMin":15000,"totalCostMax":25000,"glossary":{"rotil":"açıklama"}}`;
-const STATION_HTML=`
-<div style="max-width:720px;margin:0 auto;padding:0 1.5rem 1rem">
-  <div class="section-title-sm">RAPORUN YAPILDIĞI YER</div>
-  <div class="station-top-card">
-    <div class="station-top-inner">
-      <div class="station-logo">DB</div>
-      <div style="flex:1">
-        <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:2px">Dynobil Osmangazi</div>
-        <div style="font-size:12px;color:var(--muted)">Osmangazi Sanayi Sitesi, Bursa</div>
-        <div style="font-size:12px;color:var(--muted);margin-top:1px">0224 000 00 00</div>
-      </div>
-      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0">
-        <div><div style="font-size:10px;color:var(--muted);text-align:right">EkspertizAI</div><div style="display:flex;align-items:center;gap:4px;justify-content:flex-end"><span style="font-size:11px;color:var(--yellow);letter-spacing:-1px">★★★★★</span><span style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--accent2)">4.9</span></div></div>
-        <div style="width:100%;height:1px;background:var(--border)"></div>
-        <div><div style="font-size:10px;color:var(--muted);text-align:right">Google</div><div style="display:flex;align-items:center;gap:4px;justify-content:flex-end"><span style="font-size:11px;color:var(--yellow);letter-spacing:-1px">★★★★☆</span><span style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:#4285f4">4.4</span></div></div>
-      </div>
-    </div>
-    <div style="margin-top:.75rem;padding-top:.75rem;border-top:1px solid var(--border);display:flex;gap:8px">
-      <div style="flex:1;background:var(--surface2);border-radius:8px;padding:6px 10px;text-align:center"><div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700">124</div><div style="font-size:10px;color:var(--muted);margin-top:1px">EkspertizAI Yorum</div></div>
-      <div style="flex:1;background:var(--surface2);border-radius:8px;padding:6px 10px;text-align:center"><div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700">312</div><div style="font-size:10px;color:var(--muted);margin-top:1px">Google Yorum</div></div>
-      <div style="flex:1;background:var(--surface2);border-radius:8px;padding:6px 10px;text-align:center"><div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--green)">%94</div><div style="font-size:10px;color:var(--muted);margin-top:1px">Tavsiye Ediyor</div></div>
-    </div>
-  </div>
-</div>`;
-
-let pendingAction=null,loggedIn=false,currentUserId=null;
-
-function requireLogin(action){pendingAction=action;if(loggedIn){startCurrentAction();return;}showKayit();document.getElementById('modal-kayit').classList.add('open');}
-function closeModal(id){document.getElementById(id).classList.remove('open')}
-function startCurrentAction(){loggedIn=true;if(pendingAction==='arac')showScreen('arac-analiz');else if(pendingAction==='rapor'||pendingAction==='upload')showScreen('upload');pendingAction=null;}
-function showScreen(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById('loadingSection').classList.remove('active');
-  document.getElementById('aracLoadingSection').classList.remove('active');
-  document.getElementById('resultSection').classList.remove('active');
-  const el=document.getElementById('screen-'+id);
-  if(el){el.classList.add('active');window.scrollTo(0,0);}
-}
-function updateMap(il, ilce){
-  const query = encodeURIComponent('oto ekspertiz ' + (ilce||'') + ' ' + (il||'Bursa'));
-  const src = 'https://www.google.com/maps/embed/v1/search?key=AIzaSyD-9tSrke72PouQMnMX-a7eZSW0jkFMBWY&q=' + query + '&language=tr&region=TR';
-  const frame = document.getElementById('stationMapFrame');
-  const label = document.getElementById('mapLabel');
-  if(frame){
-    // API key olmadan arama URL'si
-    const searchUrl = 'https://maps.google.com/maps?q=' + query + '&output=embed&hl=tr';
-    frame.src = searchUrl;
-  }
-  if(label) label.textContent = (ilce||il||'Bölge') + ' bölgesindeki ekspertiz istasyonları';
-}
-function navTab(tab){
-  document.querySelectorAll('.nav-btn,.nav-dummy').forEach(b=>b.classList.remove('active'));
-  if(tab==='home'){showScreen('home');document.getElementById('nb-home')?.classList.add('active');}
-  else if(tab==='profil'){showScreen('profil');document.getElementById('nb-profil')?.classList.add('active');}
-}
-function checkPlate(){const val=document.getElementById('plaka-input').value.trim();if(val.length>4)document.getElementById('modal-gecmis').classList.add('open');}
-async function startAracAnaliz(){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById('aracLoadingSection').classList.add('active');
-  window.scrollTo(0,0);
-  const steps=['as1','as2','as3','as4','as5'];
-  for(let i=0;i<steps.length;i++){await new Promise(r=>setTimeout(r,800));if(i>0)document.getElementById(steps[i-1]).className='step-done';document.getElementById(steps[i]).className='step-active';}
-  await new Promise(r=>setTimeout(r,500));
-  document.getElementById(steps[4]).className='step-done';
-  document.getElementById('aracLoadingSection').classList.remove('active');
-  updateMap('Bursa','Nilüfer');
-  showScreen('arac-sonuc');
-}
-async function loadDemo(reportText, userId){
-  try{
-    const cacheKey='result_'+(reportText||'demo').substring(0,20);
-    const cached=sessionStorage.getItem(cacheKey);
-    if(cached){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));showResult(JSON.parse(cached));return;}
-  }catch(e){}
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById('resultSection').classList.remove('active');
-  document.getElementById('loadingSection').classList.add('active');
-  window.scrollTo(0,0);
-  const steps=['step1','step2','step3','step4','step5'];
-  for(let i=0;i<steps.length;i++){await new Promise(r=>setTimeout(r,700));if(i>0)document.getElementById(steps[i-1]).className='step-done';document.getElementById(steps[i]).className='step-active';}
-  await new Promise(r=>setTimeout(r,400));
-  document.getElementById(steps[4]).className='step-done';
-  try{
-    const text = reportText || REPORT_TEXT;
-    const uid = userId || currentUserId;
-    const res=await fetch('/api/v1/analysis/report',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({user_id:uid, report_text:text})
-    });
-    const data=await res.json();
-    if(data.success && data.result && data.result.success){
-      showResult(data.result.data);
-    } else if(data.detail==='Analiz hakkı kalmadı'){
-      document.getElementById('loadingSection').classList.remove('active');
-      alert('Analiz hakkınız kalmadı.');
-      navTab('home');
-    } else {
-      showFallback();
-    }
-  }catch(e){console.error(e);showFallback();}
-}
-function showResult(r){
-  document.getElementById('loadingSection').classList.remove('active');
-  try { sessionStorage.setItem('last_report_result', JSON.stringify(r)); } catch(e){}
-  const sc={green:'sg',yellow:'sy',red:'sr'};
-  const fc={green:'var(--green)',yellow:'var(--yellow)',red:'var(--red)'};
-  let sumText=r.summary||'';
-  if(r.glossary){Object.entries(r.glossary).forEach(([t,d])=>{sumText=sumText.replace(new RegExp(`(${t})`,'gi'),`<span class="term">$1<span class="term-tip">${d}</span></span>`);});}
-  document.getElementById('resultContent').innerHTML=STATION_HTML+`
-    <div style="max-width:720px;margin:0 auto;padding:0 1.5rem">
-      <div class="result-header">
-        <div class="vehicle-info"><h2>2013 KIA Sportage</h2><p>Plaka: 26B6537 &nbsp;·&nbsp; 118.303 km &nbsp;·&nbsp; Manuel Benzin</p></div>
-        <div class="verdict-badge-big vb-${r.verdict}">${getStatusLabel(r.verdict?.status||r.verdict)}</div>
-      </div>
-      <div class="summary-box">${sumText}</div>
-      <div class="categories">${r.categories.map(cat=>`<div class="cat-card"><div class="cat-header"><span class="cat-title">${cat.name.toUpperCase()}</span><span class="cat-score ${sc[cat.score]}">${cat.scoreLabel}</span></div><ul class="cat-findings">${cat.findings.map(f=>`<li><span class="find-dot" style="background:${fc[f.level]}"></span>${f.text}</li>`).join('')}</ul></div>`).join('')}</div>
-      <div class="cost-section"><div class="section-title-sm">TAHMİNİ MASRAF KALEMLERİ</div>${r.costs.map(c=>`<div class="cost-row"><span style="color:#ccc">${c.label}</span><span class="${c.urgent?'cost-urgent':'cost-normal'}" style="font-family:'Syne',sans-serif;font-weight:600">${c.amount}</span></div>`).join('')}<div class="cost-row"><span style="color:#ccc;font-weight:500">Toplam</span><span style="font-family:'Syne',sans-serif;font-weight:700;color:var(--accent2)">${(r.totalCostMin||0).toLocaleString('tr-TR')} – ${(r.totalCostMax||0).toLocaleString('tr-TR')} ₺</span></div></div>
-      <div class="section-title-sm">UZMAN HİZMETLERİ</div>
-      <div class="service-card"><div class="service-icon" style="background:rgba(232,98,42,.15)">📞</div><div class="service-info"><div class="service-title">Uzman'a Sor</div><div class="service-desc">15 dk telefon görüşmesi</div></div><div style="text-align:right;flex-shrink:0"><div class="price-tag">199 ₺<small>/ görüşme</small></div><button class="btn-buy">Talep Et</button></div></div>
-      <div class="service-card" style="margin-bottom:1.5rem"><div class="service-icon" style="background:rgba(76,175,125,.12)">📊</div><div class="service-info"><div class="service-title">Premium Değerleme</div><div class="service-desc">Güncel piyasa fiyatı + AI analizi PDF</div></div><div style="text-align:right;flex-shrink:0"><div class="price-tag">129 ₺<small>/ rapor</small></div><button class="btn-buy">Satın Al</button></div></div>
-      <div class="review-section">
-        <div class="section-title-sm">EKSPERTİZ HAKKINDA YORUM YAP</div>
-        <div style="font-size:13px;color:var(--muted);margin-bottom:.75rem">Dynobil Osmangazi · Rapor deneyimini paylaş</div>
-        <div class="stars-input" id="starsInput"><button class="star-btn" onclick="setStar(1)">★</button><button class="star-btn" onclick="setStar(2)">★</button><button class="star-btn" onclick="setStar(3)">★</button><button class="star-btn" onclick="setStar(4)">★</button><button class="star-btn" onclick="setStar(5)">★</button></div>
-        <textarea rows="3" placeholder="Ekspertiz süreci nasıldı? Rapor kalitesi, servis tutumu..."></textarea>
-        <div class="reward-note">🎁 Yorum yapanlara kura ile ödül — ücretsiz analiz veya uzman görüşmesi</div>
-        <button class="btn-submit">Yorumu Gönder (Onay Bekler)</button>
-      </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem 1.5rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:14px">
-        <div style="font-size:24px;flex-shrink:0">🛡️</div>
-        <div style="flex:1"><div style="font-size:14px;font-weight:500">Sigorta Teklifleri</div><div style="font-size:12px;color:var(--muted)">Araç bilgileri otomatik dolduruldu</div></div>
-        <button onclick="document.getElementById('modal-sigorta').classList.add('open')" class="btn-buy">Teklifleri Gör</button>
-      </div>
-      <p class="disclaimer">Bu analiz yapay zeka desteklidir, bilgilendirme amaçlıdır. Bağlayıcı değildir.</p>
-    </div>`;
-  document.getElementById('resultSection').classList.add('active');
-  window.scrollTo(0,0);
-}
-function showFallback(){showResult({verdict:"incelenmeli",verdictLabel:"",summary:"Bu 2013 KIA Sportage'ın şasesi ve tüm iskelet parçaları orijinal durumda. Karterde yağ sızıntısı ve rotillerde deformasyon mevcut — acil masraflardır. Sağ ön çamurlukta göçük onarımı yapılmış. Masrafı fiyata yansıtarak pazarlık yapılabilir.",categories:[{name:"Güvenlik",score:"yellow",scoreLabel:"DİKKAT",findings:[{text:"Şase ve tüm iç direkler orijinal",level:"green"},{text:"Tampon demirleri kontrol edilemedi",level:"yellow"},{text:"Airbag ve fren testi yapılmamış",level:"yellow"}]},{name:"Mekanik",score:"red",scoreLabel:"RİSKLİ",findings:[{text:"Karterde yağ sızıntısı — acil",level:"red"},{text:"Dinamometre testi yapılmamış",level:"yellow"}]},{name:"Sarf Masraf",score:"red",scoreLabel:"MASRAFLI",findings:[{text:"Rotil değişimi gerekli",level:"red"},{text:"Periyodik bakım yapılmamış",level:"yellow"}]},{name:"Kaporta & Değer",score:"yellow",scoreLabel:"DİKKAT",findings:[{text:"Sağ ön çamurlukta göçük onarımı",level:"yellow"},{text:"Hasar kaydı sorgulandı — temiz",level:"green"}]}],costs:[{label:"Karter yağ sızıntısı",amount:"3.000 – 6.000 ₺",urgent:true},{label:"Rotil değişimi",amount:"4.000 – 7.000 ₺",urgent:true},{label:"Periyodik bakım",amount:"2.500 – 4.000 ₺",urgent:false},{label:"Kaporta kozmetik",amount:"5.000 – 10.000 ₺",urgent:false}],totalCostMin:14500,totalCostMax:27000,glossary:{rotil:"Ön süspansiyon eklem parçası. Deforme olunca direksiyon kontrolü bozulur.",karter:"Motorun yağ haznesi. Sızıntı motor hasarına yol açar."}})}
-function submitRandevu(){
-  const istasyon=document.getElementById('randevu-istasyon').value;
-  const tarih=document.getElementById('randevu-tarih').value;
-  const saat=document.getElementById('randevu-saat').value;
-  if(!istasyon||!tarih||!saat){alert('Lütfen tüm alanları doldurun.');return;}
-  closeModal('modal-randevu');
-  alert('✅ Randevu talebiniz alındı!\n\n'+istasyon+'\n'+tarih+' · '+saat+'\n\nSizi en kısa sürede arayarak onaylayacağız.');
-}
-
-// ─── AUTH ───────────────────────────────────────────────
+<script>// ─── AUTH ───────────────────────────────────────────────
 function showKayit(){document.getElementById('kayit-form-view').style.display='block';document.getElementById('giris-form-view').style.display='none';}
 function showGiris(){document.getElementById('kayit-form-view').style.display='none';document.getElementById('giris-form-view').style.display='block';}
 
@@ -874,429 +667,50 @@ async function startUploadAnaliz(){
   document.getElementById('loadingSection').classList.add('active');
   window.scrollTo(0,0);
   const steps=['step1','step2','step3','step4','step5'];
-  for(let i=0;i<steps.length;i++){await new Promise(r=>setTimeout(r,700));if(i>0)document.getElementById(steps[i-1]).className='step-done';document.getElementById(steps[i]).className='step-active';}
-  await new Promise(r=>setTimeout(r,400));
-  document.getElementById(steps[4]).className='step-done';
+  let si=0;
+  const stInt=setInterval(()=>{
+    if(si>0&&si<=steps.length) document.getElementById(steps[si-1]).className='step-done';
+    if(si<steps.length) document.getElementById(steps[si]).className='step-active';
+    si++; if(si>steps.length) clearInterval(stInt);
+  },8000);
   try{
-    const formData=new FormData();
-    formData.append('file',selectedFile);
-    if(currentUserId) formData.append('user_id',currentUserId);
-    const res=await fetch('/api/v1/analysis/upload',{method:'POST',body:formData});
+    const fd=new FormData();
+    fd.append('file',selectedFile);
+    if(currentUserId) fd.append('user_id',currentUserId);
+    const res=await fetch('/api/v1/analysis/upload',{method:'POST',body:fd});
     const data=await res.json();
-    if(data.success&&data.result&&data.result.success){
-      showResult(data.result.data);
-    } else if(data.detail==='Analiz hakkı kalmadı'){
+    if(!data.success){
+      clearInterval(stInt);
       document.getElementById('loadingSection').classList.remove('active');
-      alert('Analiz hakkınız kalmadı.');navTab('home');
-    } else {
-      showFallback();
+      if(data.detail==='Analiz hakkı kalmadı'){alert('Analiz hakkınız kalmadı.');navTab('home');}
+      else{alert(data.detail||'Yükleme başarısız.');showScreen('upload');}
+      return;
     }
-  }catch(e){console.error(e);showFallback();}
-}
-
-// Araç analiz fotoğraf
-let aracPhoto = null;
-function handleAracPhoto(input){
-  const file=input.files[0];
-  if(file){
-    aracPhoto=file;
-    const nameEl=document.getElementById('arac-photo-name');
-    if(nameEl){nameEl.textContent='✓ '+file.name;nameEl.style.display='block';}
-    document.getElementById('arac-photo-zone').style.borderColor='var(--green)';
+    const rid=data.report_id;
+    let att=0;
+    const poll=setInterval(async()=>{
+      att++;
+      if(att>60){clearInterval(poll);clearInterval(stInt);document.getElementById('loadingSection').classList.remove('active');alert('Zaman aşımı. Tekrar deneyin.');showScreen('upload');return;}
+      try{
+        const r=await fetch('/api/v1/jobs/'+rid);
+        const j=await r.json();
+        if(j.status==='completed'){
+          clearInterval(poll);clearInterval(stInt);
+          steps.forEach(s=>document.getElementById(s).className='step-done');
+          if(j.result&&j.result.success) showResult(j.result.data);
+          else{document.getElementById('loadingSection').classList.remove('active');alert('Analiz tamamlanamadı. Net PDF yükleyin.');showScreen('upload');}
+        } else if(j.status==='error'){
+          clearInterval(poll);clearInterval(stInt);
+          document.getElementById('loadingSection').classList.remove('active');
+          alert('Analiz başarısız. Tekrar deneyin.');showScreen('upload');
+        }
+      }catch(e){console.error(e);}
+    },3000);
+  }catch(e){
+    clearInterval(stInt);
+    document.getElementById('loadingSection').classList.remove('active');
+    alert('Bağlantı hatası.');showScreen('upload');
   }
-}
-
-// requireLogin güncelle — upload action ekle
-
-// ─── AUTH ───────────────────────────────────────────────
-function showKayit(){document.getElementById('kayit-form-view').style.display='block';document.getElementById('giris-form-view').style.display='none';}
-function showGiris(){document.getElementById('kayit-form-view').style.display='none';document.getElementById('giris-form-view').style.display='block';}
-
-async function submitKayit(){
-  const ad=document.getElementById('kayit-ad').value.trim();
-  const soyad=document.getElementById('kayit-soyad').value.trim();
-  const tel=document.getElementById('kayit-tel').value.trim();
-  const sifre=document.getElementById('kayit-sifre').value;
-  const err=document.getElementById('kayit-error');
-  if(!ad||!soyad||!tel||!sifre){err.textContent='Tüm alanları doldurun.';err.style.display='block';return;}
-  if(sifre.length<6){err.textContent='Şifre en az 6 karakter olmalı.';err.style.display='block';return;}
-  err.style.display='none';
-  try{
-    const res=await fetch('/api/v1/users/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:tel,name:ad+' '+soyad,password:sifre})});
-    const data=await res.json();
-    if(data.user_id||data.exists){
-      currentUserId=data.user_id;
-      localStorage.setItem('userId',currentUserId);
-      localStorage.setItem('userName',ad);
-      loggedIn=true;
-      closeModal('modal-kayit');
-      updateNavProfile(ad);
-      startCurrentAction();
-    } else {
-      err.textContent=data.detail||'Kayıt başarısız.';err.style.display='block';
-    }
-  }catch(e){err.textContent='Bağlantı hatası.';err.style.display='block';}
-}
-
-async function submitGiris(){
-  const tel=document.getElementById('giris-tel').value.trim();
-  const sifre=document.getElementById('giris-sifre').value;
-  const err=document.getElementById('giris-error');
-  if(!tel||!sifre){err.textContent='Telefon ve şifre gerekli.';err.style.display='block';return;}
-  err.style.display='none';
-  try{
-    const res=await fetch('/api/v1/users/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:tel,password:sifre})});
-    const data=await res.json();
-    if(data.user_id){
-      currentUserId=data.user_id;
-      localStorage.setItem('userId',currentUserId);
-      localStorage.setItem('userName',data.name||tel);
-      loggedIn=true;
-      closeModal('modal-kayit');
-      updateNavProfile(data.name||tel);
-      startCurrentAction();
-    } else {
-      err.textContent=data.detail||'Telefon veya şifre hatalı.';err.style.display='block';
-    }
-  }catch(e){err.textContent='Bağlantı hatası.';err.style.display='block';}
-}
-
-function updateNavProfile(name){
-  const btn=document.getElementById('nb-profil');
-  if(btn) btn.textContent='👤 '+name.split(' ')[0];
-}
-
-// Sayfa yüklenince oturumu kontrol et
-window.addEventListener('load',()=>{
-  const uid=localStorage.getItem('userId');
-  const uname=localStorage.getItem('userName');
-  if(uid){currentUserId=uid;loggedIn=true;if(uname)updateNavProfile(uname);}
-});
-
-// ─── UPLOAD ─────────────────────────────────────────────
-let selectedFile = null;
-
-function handleFileDrop(e){
-  e.preventDefault();
-  document.getElementById('pdf-drop-zone').style.borderColor='var(--border2)';
-  const file=e.dataTransfer.files[0];
-  if(file) setSelectedFile(file);
-}
-
-function handleFileSelect(input){
-  const file=input.files[0];
-  if(file) setSelectedFile(file);
-}
-
-function setSelectedFile(file){
-  selectedFile=file;
-  const info=document.getElementById('selected-file-info');
-  const name=document.getElementById('selected-file-name');
-  if(info&&name){
-    name.textContent=file.name+' ('+Math.round(file.size/1024)+' KB)';
-    info.style.display='flex';
-  }
-  const btn=document.getElementById('analyze-btn');
-  if(btn){btn.disabled=false;btn.style.opacity='1';btn.style.cursor='pointer';}
-}
-
-async function startUploadAnaliz(){
-  if(!selectedFile){alert('Lütfen bir dosya seçin.');return;}
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById('resultSection').classList.remove('active');
-  document.getElementById('loadingSection').classList.add('active');
-  window.scrollTo(0,0);
-  const steps=['step1','step2','step3','step4','step5'];
-  for(let i=0;i<steps.length;i++){await new Promise(r=>setTimeout(r,700));if(i>0)document.getElementById(steps[i-1]).className='step-done';document.getElementById(steps[i]).className='step-active';}
-  await new Promise(r=>setTimeout(r,400));
-  document.getElementById(steps[4]).className='step-done';
-  try{
-    const formData=new FormData();
-    formData.append('file',selectedFile);
-    if(currentUserId) formData.append('user_id',currentUserId);
-    const res=await fetch('/api/v1/analysis/upload',{method:'POST',body:formData});
-    const data=await res.json();
-    if(data.success&&data.result&&data.result.success){
-      showResult(data.result.data);
-    } else if(data.detail==='Analiz hakkı kalmadı'){
-      document.getElementById('loadingSection').classList.remove('active');
-      alert('Analiz hakkınız kalmadı.');navTab('home');
-    } else {
-      showFallback();
-    }
-  }catch(e){console.error(e);showFallback();}
-}
-
-// Araç analiz fotoğraf
-let aracPhoto = null;
-function handleAracPhoto(input){
-  const file=input.files[0];
-  if(file){
-    aracPhoto=file;
-    const nameEl=document.getElementById('arac-photo-name');
-    if(nameEl){nameEl.textContent='✓ '+file.name;nameEl.style.display='block';}
-    document.getElementById('arac-photo-zone').style.borderColor='var(--green)';
-  }
-}
-
-// requireLogin güncelle — upload action ekle
-function getStatusLabel(v){
-  if(!v) return 'Analiz Tamamlandı';
-  if(v==='C'||v==='red') return 'Dikkat Gerektiren Bulgular Mevcut';
-  if(v==='B'||v==='yellow') return 'İncelenmesi Önerilen Bulgular Var';
-  return 'Belirgin Sorun Tespit Edilmedi';
-}
-
-// ─── AUTH ───────────────────────────────────────────────
-function showKayit(){document.getElementById('kayit-form-view').style.display='block';document.getElementById('giris-form-view').style.display='none';}
-function showGiris(){document.getElementById('kayit-form-view').style.display='none';document.getElementById('giris-form-view').style.display='block';}
-
-async function submitKayit(){
-  const ad=document.getElementById('kayit-ad').value.trim();
-  const soyad=document.getElementById('kayit-soyad').value.trim();
-  const tel=document.getElementById('kayit-tel').value.trim();
-  const sifre=document.getElementById('kayit-sifre').value;
-  const err=document.getElementById('kayit-error');
-  if(!ad||!soyad||!tel||!sifre){err.textContent='Tüm alanları doldurun.';err.style.display='block';return;}
-  if(sifre.length<6){err.textContent='Şifre en az 6 karakter olmalı.';err.style.display='block';return;}
-  err.style.display='none';
-  try{
-    const res=await fetch('/api/v1/users/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:tel,name:ad+' '+soyad,password:sifre})});
-    const data=await res.json();
-    if(data.user_id||data.exists){
-      currentUserId=data.user_id;
-      localStorage.setItem('userId',currentUserId);
-      localStorage.setItem('userName',ad);
-      loggedIn=true;
-      closeModal('modal-kayit');
-      updateNavProfile(ad);
-      startCurrentAction();
-    } else {
-      err.textContent=data.detail||'Kayıt başarısız.';err.style.display='block';
-    }
-  }catch(e){err.textContent='Bağlantı hatası.';err.style.display='block';}
-}
-
-async function submitGiris(){
-  const tel=document.getElementById('giris-tel').value.trim();
-  const sifre=document.getElementById('giris-sifre').value;
-  const err=document.getElementById('giris-error');
-  if(!tel||!sifre){err.textContent='Telefon ve şifre gerekli.';err.style.display='block';return;}
-  err.style.display='none';
-  try{
-    const res=await fetch('/api/v1/users/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:tel,password:sifre})});
-    const data=await res.json();
-    if(data.user_id){
-      currentUserId=data.user_id;
-      localStorage.setItem('userId',currentUserId);
-      localStorage.setItem('userName',data.name||tel);
-      loggedIn=true;
-      closeModal('modal-kayit');
-      updateNavProfile(data.name||tel);
-      startCurrentAction();
-    } else {
-      err.textContent=data.detail||'Telefon veya şifre hatalı.';err.style.display='block';
-    }
-  }catch(e){err.textContent='Bağlantı hatası.';err.style.display='block';}
-}
-
-function updateNavProfile(name){
-  const btn=document.getElementById('nb-profil');
-  if(btn) btn.textContent='👤 '+name.split(' ')[0];
-}
-
-// Sayfa yüklenince oturumu kontrol et
-window.addEventListener('load',()=>{
-  const uid=localStorage.getItem('userId');
-  const uname=localStorage.getItem('userName');
-  if(uid){currentUserId=uid;loggedIn=true;if(uname)updateNavProfile(uname);}
-});
-
-// ─── UPLOAD ─────────────────────────────────────────────
-let selectedFile = null;
-
-function handleFileDrop(e){
-  e.preventDefault();
-  document.getElementById('pdf-drop-zone').style.borderColor='var(--border2)';
-  const file=e.dataTransfer.files[0];
-  if(file) setSelectedFile(file);
-}
-
-function handleFileSelect(input){
-  const file=input.files[0];
-  if(file) setSelectedFile(file);
-}
-
-function setSelectedFile(file){
-  selectedFile=file;
-  const info=document.getElementById('selected-file-info');
-  const name=document.getElementById('selected-file-name');
-  if(info&&name){
-    name.textContent=file.name+' ('+Math.round(file.size/1024)+' KB)';
-    info.style.display='flex';
-  }
-  const btn=document.getElementById('analyze-btn');
-  if(btn){btn.disabled=false;btn.style.opacity='1';btn.style.cursor='pointer';}
-}
-
-async function startUploadAnaliz(){
-  if(!selectedFile){alert('Lütfen bir dosya seçin.');return;}
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById('resultSection').classList.remove('active');
-  document.getElementById('loadingSection').classList.add('active');
-  window.scrollTo(0,0);
-  const steps=['step1','step2','step3','step4','step5'];
-  for(let i=0;i<steps.length;i++){await new Promise(r=>setTimeout(r,700));if(i>0)document.getElementById(steps[i-1]).className='step-done';document.getElementById(steps[i]).className='step-active';}
-  await new Promise(r=>setTimeout(r,400));
-  document.getElementById(steps[4]).className='step-done';
-  try{
-    const formData=new FormData();
-    formData.append('file',selectedFile);
-    if(currentUserId) formData.append('user_id',currentUserId);
-    const res=await fetch('/api/v1/analysis/upload',{method:'POST',body:formData});
-    const data=await res.json();
-    if(data.success&&data.result&&data.result.success){
-      showResult(data.result.data);
-    } else if(data.detail==='Analiz hakkı kalmadı'){
-      document.getElementById('loadingSection').classList.remove('active');
-      alert('Analiz hakkınız kalmadı.');navTab('home');
-    } else {
-      showFallback();
-    }
-  }catch(e){console.error(e);showFallback();}
-}
-
-// Araç analiz fotoğraf
-let aracPhoto = null;
-function handleAracPhoto(input){
-  const file=input.files[0];
-  if(file){
-    aracPhoto=file;
-    const nameEl=document.getElementById('arac-photo-name');
-    if(nameEl){nameEl.textContent='✓ '+file.name;nameEl.style.display='block';}
-    document.getElementById('arac-photo-zone').style.borderColor='var(--green)';
-  }
-}
-
-// requireLogin güncelle — upload action ekle
-
-// ─── AUTH ───────────────────────────────────────────────
-function showKayit(){document.getElementById('kayit-form-view').style.display='block';document.getElementById('giris-form-view').style.display='none';}
-function showGiris(){document.getElementById('kayit-form-view').style.display='none';document.getElementById('giris-form-view').style.display='block';}
-
-async function submitKayit(){
-  const ad=document.getElementById('kayit-ad').value.trim();
-  const soyad=document.getElementById('kayit-soyad').value.trim();
-  const tel=document.getElementById('kayit-tel').value.trim();
-  const sifre=document.getElementById('kayit-sifre').value;
-  const err=document.getElementById('kayit-error');
-  if(!ad||!soyad||!tel||!sifre){err.textContent='Tüm alanları doldurun.';err.style.display='block';return;}
-  if(sifre.length<6){err.textContent='Şifre en az 6 karakter olmalı.';err.style.display='block';return;}
-  err.style.display='none';
-  try{
-    const res=await fetch('/api/v1/users/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:tel,name:ad+' '+soyad,password:sifre})});
-    const data=await res.json();
-    if(data.user_id||data.exists){
-      currentUserId=data.user_id;
-      localStorage.setItem('userId',currentUserId);
-      localStorage.setItem('userName',ad);
-      loggedIn=true;
-      closeModal('modal-kayit');
-      updateNavProfile(ad);
-      startCurrentAction();
-    } else {
-      err.textContent=data.detail||'Kayıt başarısız.';err.style.display='block';
-    }
-  }catch(e){err.textContent='Bağlantı hatası.';err.style.display='block';}
-}
-
-async function submitGiris(){
-  const tel=document.getElementById('giris-tel').value.trim();
-  const sifre=document.getElementById('giris-sifre').value;
-  const err=document.getElementById('giris-error');
-  if(!tel||!sifre){err.textContent='Telefon ve şifre gerekli.';err.style.display='block';return;}
-  err.style.display='none';
-  try{
-    const res=await fetch('/api/v1/users/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phone:tel,password:sifre})});
-    const data=await res.json();
-    if(data.user_id){
-      currentUserId=data.user_id;
-      localStorage.setItem('userId',currentUserId);
-      localStorage.setItem('userName',data.name||tel);
-      loggedIn=true;
-      closeModal('modal-kayit');
-      updateNavProfile(data.name||tel);
-      startCurrentAction();
-    } else {
-      err.textContent=data.detail||'Telefon veya şifre hatalı.';err.style.display='block';
-    }
-  }catch(e){err.textContent='Bağlantı hatası.';err.style.display='block';}
-}
-
-function updateNavProfile(name){
-  const btn=document.getElementById('nb-profil');
-  if(btn) btn.textContent='👤 '+name.split(' ')[0];
-}
-
-// Sayfa yüklenince oturumu kontrol et
-window.addEventListener('load',()=>{
-  const uid=localStorage.getItem('userId');
-  const uname=localStorage.getItem('userName');
-  if(uid){currentUserId=uid;loggedIn=true;if(uname)updateNavProfile(uname);}
-});
-
-// ─── UPLOAD ─────────────────────────────────────────────
-let selectedFile = null;
-
-function handleFileDrop(e){
-  e.preventDefault();
-  document.getElementById('pdf-drop-zone').style.borderColor='var(--border2)';
-  const file=e.dataTransfer.files[0];
-  if(file) setSelectedFile(file);
-}
-
-function handleFileSelect(input){
-  const file=input.files[0];
-  if(file) setSelectedFile(file);
-}
-
-function setSelectedFile(file){
-  selectedFile=file;
-  const info=document.getElementById('selected-file-info');
-  const name=document.getElementById('selected-file-name');
-  if(info&&name){
-    name.textContent=file.name+' ('+Math.round(file.size/1024)+' KB)';
-    info.style.display='flex';
-  }
-  const btn=document.getElementById('analyze-btn');
-  if(btn){btn.disabled=false;btn.style.opacity='1';btn.style.cursor='pointer';}
-}
-
-async function startUploadAnaliz(){
-  if(!selectedFile){alert('Lütfen bir dosya seçin.');return;}
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById('resultSection').classList.remove('active');
-  document.getElementById('loadingSection').classList.add('active');
-  window.scrollTo(0,0);
-  const steps=['step1','step2','step3','step4','step5'];
-  for(let i=0;i<steps.length;i++){await new Promise(r=>setTimeout(r,700));if(i>0)document.getElementById(steps[i-1]).className='step-done';document.getElementById(steps[i]).className='step-active';}
-  await new Promise(r=>setTimeout(r,400));
-  document.getElementById(steps[4]).className='step-done';
-  try{
-    const formData=new FormData();
-    formData.append('file',selectedFile);
-    if(currentUserId) formData.append('user_id',currentUserId);
-    const res=await fetch('/api/v1/analysis/upload',{method:'POST',body:formData});
-    const data=await res.json();
-    if(data.success&&data.result&&data.result.success){
-      showResult(data.result.data);
-    } else if(data.detail==='Analiz hakkı kalmadı'){
-      document.getElementById('loadingSection').classList.remove('active');
-      alert('Analiz hakkınız kalmadı.');navTab('home');
-    } else {
-      showFallback();
-    }
-  }catch(e){console.error(e);showFallback();}
 }
 
 // Araç analiz fotoğraf
@@ -1321,6 +735,35 @@ function getStatusLabel(v){
   return v;
 }
 function setStar(n){document.querySelectorAll('.star-btn').forEach((b,i)=>b.classList.toggle('active',i<n));}
+
+function cikisYap(){
+  if(!confirm('Çıkış yapmak istediğinize emin misiniz?')) return;
+  currentUserId=null; loggedIn=false;
+  localStorage.removeItem('userId'); localStorage.removeItem('userName');
+  const btn=document.getElementById('nb-profil');
+  if(btn) btn.textContent='👤 Profilim';
+  navTab('home');
+}
+
+async function loadProfile(){
+  if(!currentUserId) return;
+  try{
+    const res=await fetch('/api/v1/users/'+currentUserId);
+    const u=await res.json();
+    if(u.id){
+      const initials=(u.name||'?').split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+      const avatar=document.querySelector('.avatar');
+      if(avatar) avatar.textContent=initials;
+      const stats=document.querySelectorAll('.stat-num');
+      if(stats[0]) stats[0].textContent=u.free_analyses||0;
+      if(stats[1]) stats[1].textContent=u.total_analyses||0;
+      if(stats[2]) stats[2].textContent=u.invite_count||0;
+      const refEl=document.querySelector('.referral-code');
+      if(refEl&&u.referral_code) refEl.textContent=u.referral_code;
+    }
+  }catch(e){console.error(e);}
+}
+
 function resetAll(){document.getElementById('resultSection').classList.remove('active');document.getElementById('loadingSection').classList.remove('active');['step1','step2','step3','step4','step5'].forEach(s=>{const el=document.getElementById(s);if(el)el.className='';});document.getElementById('resultContent').innerHTML='';navTab('home');}
 </script>
 </body>
