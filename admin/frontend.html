@@ -551,10 +551,16 @@ textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);b
       <div class="referral-code">EKS-A7B2</div>
       <div style="font-size:12px;color:var(--muted);display:flex;justify-content:space-between;margin-bottom:4px"><span id="invite-count">0 / 3 davet</span><span style="color:var(--accent2)" id="invite-left">3 kaldı!</span></div>
       <div class="progress-bar"><div class="progress-fill" id="invite-bar" style="width:0%"></div></div>
-      <button class="btn-share" style="margin-top:.75rem">WhatsApp'ta Paylaş</button>
+      <button class="btn-share" style="margin-top:.75rem" onclick="shareWhatsapp()">WhatsApp'ta Paylaş</button>
     </div>
     <div class="section-title-sm" style="margin:1.5rem 0 .75rem">ÖDÜLLERİM</div>
-    <div id="prizes-container"><div style="font-size:13px;color:var(--muted);padding:.5rem 0">Henüz ödülünüz yok.</div></div><div style="flex:1"><div style="font-size:14px;font-weight:500">Uzman Görüşmesi</div><div style="font-size:12px;color:var(--muted)">Kura ödülü · 2 Mart 2026</div></div><span class="prize-badge used">Kullanıldı</span></div>
+    <div id="prizes-container">
+      <div style="background:linear-gradient(135deg,rgba(232,98,42,.08),rgba(245,200,66,.06));border:1px solid rgba(232,98,42,.2);border-radius:var(--radius);padding:1.25rem;text-align:center">
+        <div style="font-size:32px;margin-bottom:.5rem">🎁</div>
+        <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:600;margin-bottom:.3rem">Ödül Kazanmaya Başla</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.6">Arkadaşlarını davet et, yorum yap<br>ve ücretsiz analiz hakkı kazan!</div>
+      </div>
+    </div><div style="flex:1"><div style="font-size:14px;font-weight:500">Uzman Görüşmesi</div><div style="font-size:12px;color:var(--muted)">Kura ödülü · 2 Mart 2026</div></div><span class="prize-badge used">Kullanıldı</span></div>
     <div class="section-title-sm" style="margin:1.5rem 0 .75rem" data-section="analizlerim">ANALİZLERİM</div>
     <div id="reports-container"><div style="font-size:13px;color:var(--muted);padding:.5rem 0">Henüz analiziniz yok.</div></div><div style="flex:1"><div style="font-size:14px;font-weight:500">2020 Toyota Corolla</div><div style="font-size:12px;color:var(--muted)">16 TK 5678 · 15 Nisan 2026</div></div><div style="font-size:12px;color:var(--muted)">PDF ↓</div></div>
   </div>
@@ -674,6 +680,7 @@ async function submitKayit(){
     const data=await res.json();
     if(data.user_id||data.exists){
       currentUserId=data.user_id;
+      sessionStorage.clear();
       localStorage.setItem('userId',currentUserId);
       localStorage.setItem('userName',ad);
       loggedIn=true;
@@ -697,6 +704,7 @@ async function submitGiris(){
     const data=await res.json();
     if(data.user_id){
       currentUserId=data.user_id;
+      sessionStorage.clear();
       localStorage.setItem('userId',currentUserId);
       localStorage.setItem('userName',data.name||tel);
       loggedIn=true;
@@ -778,7 +786,7 @@ async function startUploadAnaliz(){
     let att=0;
     const poll=setInterval(async()=>{
       att++;
-      if(att>60){clearInterval(poll);clearInterval(stInt);document.getElementById('loadingSection').classList.remove('active');alert('Zaman aşımı. Tekrar deneyin.');showScreen('upload');return;}
+      if(att>100){clearInterval(poll);clearInterval(stInt);document.getElementById('loadingSection').classList.remove('active');alert('Zaman aşımı. Tekrar deneyin.');showScreen('upload');return;}
       try{
         const r=await fetch('/api/v1/jobs/'+rid);
         const j=await r.json();
@@ -882,10 +890,28 @@ async function loadProfile(){
         const vi=r.result?.data?.vehicleInfo||{};
         const arac=((vi.marka||'')+(vi.model?' '+vi.model:'')).trim()||'Rapor';
         const tarih=new Date(r.created_at).toLocaleDateString('tr-TR');
-        cont.innerHTML+=`<div class="report-card"><div class="verdict-dot ${cls}">${icon}</div><div style="flex:1"><div style="font-size:14px;font-weight:500">${arac}</div><div style="font-size:12px;color:var(--muted)">${r.plaka||''} · ${tarih}</div></div></div>`;
+        cont.innerHTML+=`<div class="report-card" onclick="viewReport('${r.id}')"><div class="verdict-dot ${cls}">${icon}</div><div style="flex:1"><div style="font-size:14px;font-weight:500">${arac}</div><div style="font-size:12px;color:var(--muted)">${r.plaka||''} · ${tarih}</div></div><div style="font-size:12px;color:var(--accent2)">Gör →</div></div>`;
       });
     }
   }catch(e){console.error(e);}
+}
+
+function shareWhatsapp(){
+  const code = document.querySelector('.referral-code')?.textContent||'';
+  const msg = encodeURIComponent('EkspertizAI ile araç almadan önce raporu analiz et! Ücretsiz dene: https://ekspertizai.com\n\nReferans kodum: '+code);
+  window.open('https://wa.me/?text='+msg,'_blank');
+}
+
+async function viewReport(reportId){
+  try{
+    const res = await fetch('/api/v1/reports/'+reportId);
+    const data = await res.json();
+    if(data.result&&data.result.data){
+      showResult(data.result.data);
+    } else {
+      alert('Rapor yüklenemedi.');
+    }
+  }catch(e){alert('Bağlantı hatası.');}
 }
 
 function resetAll(){document.getElementById('resultSection').classList.remove('active');document.getElementById('loadingSection').classList.remove('active');['step1','step2','step3','step4','step5'].forEach(s=>{const el=document.getElementById(s);if(el)el.className='';});document.getElementById('resultContent').innerHTML='';navTab('home');}
