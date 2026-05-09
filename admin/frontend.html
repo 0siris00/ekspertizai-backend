@@ -538,8 +538,8 @@ textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);b
     </div>
     <div class="profile-card">
       <div style="display:flex;align-items:center;gap:14px;margin-bottom:1.25rem">
-        <div class="avatar">AY</div>
-        <div><div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:700">Ahmet Yılmaz</div><div style="font-size:13px;color:var(--muted)">+90 532 *** ** 47</div></div>
+        <div class="avatar" id="profile-avatar">?</div>
+        <div><div style="font-family:'Syne',sans-serif;font-size:17px;font-weight:700" id="profile-name">Kullanıcı</div><div style="font-size:13px;color:var(--muted)" id="profile-phone"></div></div>
       </div>
       <div class="stat-grid">
         <div class="stat-box"><div class="stat-num">3</div><div class="stat-label">Analiz Hakkı</div></div>
@@ -551,16 +551,14 @@ textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);b
       <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:.4rem">Arkadaşını Davet Et 🎁</div>
       <div style="font-size:13px;color:var(--muted);margin-bottom:1rem;line-height:1.6">Her 3 davette kura çekilir — kazanan ücretsiz analiz veya uzman görüşmesi kazanır.</div>
       <div class="referral-code">EKS-A7B2</div>
-      <div style="font-size:12px;color:var(--muted);display:flex;justify-content:space-between;margin-bottom:4px"><span>2 / 3 davet</span><span style="color:var(--accent2)">1 kaldı!</span></div>
-      <div class="progress-bar"><div class="progress-fill" style="width:66%"></div></div>
+      <div style="font-size:12px;color:var(--muted);display:flex;justify-content:space-between;margin-bottom:4px"><span id="invite-count">0 / 3 davet</span><span style="color:var(--accent2)" id="invite-left">3 kaldı!</span></div>
+      <div class="progress-bar"><div class="progress-fill" id="invite-bar" style="width:0%"></div></div>
       <button class="btn-share" style="margin-top:.75rem">WhatsApp'ta Paylaş</button>
     </div>
     <div class="section-title-sm" style="margin:1.5rem 0 .75rem">ÖDÜLLERİM</div>
-    <div class="prize-card"><div style="font-size:22px">🎯</div><div style="flex:1"><div style="font-size:14px;font-weight:500">Ücretsiz Rapor Analizi</div><div style="font-size:12px;color:var(--muted)">Kura ödülü · 12 Nisan 2026</div></div><span class="prize-badge">Aktif</span></div>
-    <div class="prize-card"><div style="font-size:22px">📞</div><div style="flex:1"><div style="font-size:14px;font-weight:500">Uzman Görüşmesi</div><div style="font-size:12px;color:var(--muted)">Kura ödülü · 2 Mart 2026</div></div><span class="prize-badge used">Kullanıldı</span></div>
+    <div id="prizes-container"><div style="font-size:13px;color:var(--muted);padding:.5rem 0">Henüz ödülünüz yok.</div></div><div style="flex:1"><div style="font-size:14px;font-weight:500">Uzman Görüşmesi</div><div style="font-size:12px;color:var(--muted)">Kura ödülü · 2 Mart 2026</div></div><span class="prize-badge used">Kullanıldı</span></div>
     <div class="section-title-sm" style="margin:1.5rem 0 .75rem" data-section="analizlerim">ANALİZLERİM</div>
-    <div class="report-card"><div class="verdict-dot vd-B">B</div><div style="flex:1"><div style="font-size:14px;font-weight:500">2017 BMW 320i</div><div style="font-size:12px;color:var(--muted)">34 AB 1234 · 28 Nisan 2026</div></div><div style="font-size:12px;color:var(--muted)">PDF ↓</div></div>
-    <div class="report-card"><div class="verdict-dot vd-A">A</div><div style="flex:1"><div style="font-size:14px;font-weight:500">2020 Toyota Corolla</div><div style="font-size:12px;color:var(--muted)">16 TK 5678 · 15 Nisan 2026</div></div><div style="font-size:12px;color:var(--muted)">PDF ↓</div></div>
+    <div id="reports-container"><div style="font-size:13px;color:var(--muted);padding:.5rem 0">Henüz analiziniz yok.</div></div><div style="flex:1"><div style="font-size:14px;font-weight:500">2020 Toyota Corolla</div><div style="font-size:12px;color:var(--muted)">16 TK 5678 · 15 Nisan 2026</div></div><div style="font-size:12px;color:var(--muted)">PDF ↓</div></div>
   </div>
 </div>
 
@@ -568,7 +566,94 @@ textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);b
   
 </div>
 
-<script>// ─── AUTH ───────────────────────────────────────────────
+<script>
+let pendingAction=null,loggedIn=false,currentUserId=null;
+
+function requireLogin(action){
+  pendingAction=action;
+  if(loggedIn){startCurrentAction();return;}
+  // Form alanlarını temizle
+  ['kayit-ad','kayit-soyad','kayit-tel','kayit-sifre','giris-tel','giris-sifre'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.value='';
+  });
+  ['kayit-error','giris-error'].forEach(id=>{
+    const el=document.getElementById(id);if(el)el.style.display='none';
+  });
+  showKayit();
+  document.getElementById('modal-kayit').classList.add('open');
+}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function startCurrentAction(){
+  loggedIn=true;
+  if(pendingAction==='arac') showScreen('arac-analiz');
+  else if(pendingAction==='rapor'||pendingAction==='upload') showScreen('upload');
+  pendingAction=null;
+}
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('loadingSection').classList.remove('active');
+  document.getElementById('aracLoadingSection').classList.remove('active');
+  document.getElementById('resultSection').classList.remove('active');
+  const el=document.getElementById('screen-'+id);
+  if(el){el.classList.add('active');window.scrollTo(0,0);}
+}
+function navTab(tab){
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  if(tab==='home'){showScreen('home');document.getElementById('nb-home')?.classList.add('active');}
+  else if(tab==='profil'){
+    if(!loggedIn){
+      ['kayit-ad','kayit-soyad','kayit-tel','kayit-sifre','giris-tel','giris-sifre'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+      showGiris();
+      document.getElementById('modal-kayit').classList.add('open');
+    } else {
+      showScreen('profil');
+      document.getElementById('nb-profil')?.classList.add('active');
+      loadProfile();
+    }
+  }
+  else if(tab==='rapor'){requireLogin('upload');}
+}
+function showKayit(){
+  const k=document.getElementById('kayit-form-view');
+  const g=document.getElementById('giris-form-view');
+  if(k) k.style.display='block';
+  if(g) g.style.display='none';
+}
+function showGiris(){
+  const k=document.getElementById('kayit-form-view');
+  const g=document.getElementById('giris-form-view');
+  if(k) k.style.display='none';
+  if(g) g.style.display='block';
+}
+async function checkPlate(){
+  const val=document.getElementById('plaka-input').value.trim();
+  if(val.length<4){alert('Geçerli bir plaka girin.');return;}
+  try{
+    const res=await fetch('/api/v1/reports/by-plate/'+encodeURIComponent(val.replace(/\s/g,'')));
+    const data=await res.json();
+    if(data.count>0){
+      // Modal içeriğini doldur
+      const modal=document.getElementById('modal-gecmis');
+      const rowContainer=modal.querySelector('.modal .old-report-row')?.parentElement;
+      // Gerçek verilerle doldur
+      document.querySelector('#modal-gecmis .modal div:nth-child(2)').textContent='Bu araç için '+data.count+' rapor var';
+      document.querySelector('#modal-gecmis .modal div:nth-child(3)').textContent=val+' plakalı araç daha önce ekspertize götürülmüş.';
+      modal.classList.add('open');
+    } else {
+      alert('Bu plakaya ait rapor bulunamadı.');
+    }
+  }catch(e){alert('Sorgulama sırasında hata oluştu.');}
+}
+function updateNavProfile(name){
+  const btn=document.getElementById('nb-profil');
+  if(btn) btn.textContent='👤 '+name.split(' ')[0];
+}
+window.addEventListener('load',()=>{
+  const uid=localStorage.getItem('userId');
+  const uname=localStorage.getItem('userName');
+  if(uid){currentUserId=uid;loggedIn=true;if(uname)updateNavProfile(uname);}
+});
+// ─── AUTH ───────────────────────────────────────────────
 function showKayit(){document.getElementById('kayit-form-view').style.display='block';document.getElementById('giris-form-view').style.display='none';}
 function showGiris(){document.getElementById('kayit-form-view').style.display='none';document.getElementById('giris-form-view').style.display='block';}
 
@@ -697,7 +782,8 @@ async function startUploadAnaliz(){
         if(j.status==='completed'){
           clearInterval(poll);clearInterval(stInt);
           steps.forEach(s=>document.getElementById(s).className='step-done');
-          if(j.result&&j.result.success) showResult(j.result.data);
+          const rd = j.result?.data || j.result;
+          if(j.result&&(j.result.success||rd?.verdict)) showResult(rd);
           else{document.getElementById('loadingSection').classList.remove('active');alert('Analiz tamamlanamadı. Net PDF yükleyin.');showScreen('upload');}
         } else if(j.status==='error'){
           clearInterval(poll);clearInterval(stInt);
@@ -760,6 +846,39 @@ async function loadProfile(){
       if(stats[2]) stats[2].textContent=u.invite_count||0;
       const refEl=document.querySelector('.referral-code');
       if(refEl&&u.referral_code) refEl.textContent=u.referral_code;
+      // Davet ilerlemesi
+      const inv=u.invite_count||0;
+      const invEl=document.getElementById('invite-count');
+      const invLeft=document.getElementById('invite-left');
+      const invBar=document.getElementById('invite-bar');
+      if(invEl) invEl.textContent=inv+' / 3 davet';
+      if(invLeft) invLeft.textContent=(3-(inv%3))+' kaldı!';
+      if(invBar) invBar.style.width=((inv%3)/3*100)+'%';
+      // Profil telefon
+      const phoneEl=document.getElementById('profile-phone');
+      if(phoneEl) phoneEl.textContent=u.phone||'';
+      const nameEl2=document.getElementById('profile-name');
+      if(nameEl2) nameEl2.textContent=u.name||'Kullanıcı';
+      const av=document.getElementById('profile-avatar');
+      if(av) av.textContent=(u.name||'?').split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase();
+    }
+  }catch(e){console.error(e);}
+  // Analizleri yükle
+  try{
+    const res2=await fetch('/api/v1/reports?user_id='+currentUserId+'&limit=10');
+    const data2=await res2.json();
+    const cont=document.getElementById('reports-container');
+    if(cont&&data2.reports&&data2.reports.length>0){
+      cont.innerHTML='';
+      data2.reports.forEach(r=>{
+        const v=r.result?.data?.verdict?.status||'';
+        const cls=v==='dikkat'?'sr':v==='incelenmeli'?'sy':'sg';
+        const icon=v==='dikkat'?'!':v==='incelenmeli'?'?':'✓';
+        const vi=r.result?.data?.vehicleInfo||{};
+        const arac=((vi.marka||'')+(vi.model?' '+vi.model:'')).trim()||'Rapor';
+        const tarih=new Date(r.created_at).toLocaleDateString('tr-TR');
+        cont.innerHTML+=`<div class="report-card"><div class="verdict-dot ${cls}">${icon}</div><div style="flex:1"><div style="font-size:14px;font-weight:500">${arac}</div><div style="font-size:12px;color:var(--muted)">${r.plaka||''} · ${tarih}</div></div></div>`;
+      });
     }
   }catch(e){console.error(e);}
 }
