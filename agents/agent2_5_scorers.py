@@ -43,9 +43,22 @@ async def score_category(category: str, masked_text: str, vehicle_info: dict) ->
         }
 
 async def run_parallel(masked_text: str, vehicle_info: dict, categories: dict) -> list:
+    # Kaporta only raporu tespiti
+    kaporta_keywords = ['mikron','boya','kaporta','çamurluk','kaput','renk','tamir boyası','folyo']
+    mekanik_keywords = ['dinamometre','yağ','motor','vites','şanzıman','fren test','süspansiyon test','km/h']
+    text_lower = masked_text.lower()
+    has_mekanik = any(k in text_lower for k in mekanik_keywords)
+    has_kaporta = any(k in text_lower for k in kaporta_keywords)
+    kaporta_only = has_kaporta and not has_mekanik
+
+    # Kaporta only raporu için atlanacak kategoriler
+    skip_if_kaporta_only = ['mekanik', 'sarf'] if kaporta_only else []
+
     tasks = []
     active_categories = []
     for cat, is_present in categories.items():
+        if cat in skip_if_kaporta_only:
+            continue
         if is_present:
             tasks.append(score_category(cat, masked_text, vehicle_info))
             active_categories.append(cat)

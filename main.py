@@ -16,6 +16,10 @@ from routers.referrals import router as referrals_router
 from routers.users import router as users_router
 from routers.archive import router as archive_router
 from routers.appointments import router as appointments_router
+from routers.jobs import router as jobs_router
+from routers.kronik import router as kronik_router
+from routers.jobs import router as jobs_router
+from routers.kronik import router as kronik_router
 from utils.telegram import notify_admin
 
 @asynccontextmanager
@@ -43,6 +47,10 @@ app.include_router(reviews_router, prefix="/api/v1", tags=["reviews"])
 app.include_router(referrals_router, prefix="/api/v1", tags=["referrals"])
 app.include_router(users_router, prefix="/api/v1", tags=["users"])
 app.include_router(archive_router, prefix="/api/v1", tags=["archive"])
+app.include_router(kronik_router, prefix="/api/v1", tags=["kronik"])
+app.include_router(jobs_router, prefix="/api/v1", tags=["jobs"])
+app.include_router(kronik_router, prefix="/api/v1", tags=["kronik"])
+app.include_router(jobs_router, prefix="/api/v1", tags=["jobs"])
 app.include_router(appointments_router, prefix="/api/v1", tags=["appointments"])
 
 @app.get("/health")

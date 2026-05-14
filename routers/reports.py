@@ -6,11 +6,13 @@ from utils.supabase_client import get_supabase
 router = APIRouter()
 
 @router.get("/reports")
-async def list_reports(limit: int = 50, offset: int = 0, status: Optional[str] = None):
+async def list_reports(limit: int = 50, offset: int = 0, status: Optional[str] = None, user_id: Optional[str] = None):
     db = get_supabase()
     query = db.table("reports").select("*").order("created_at", desc=True).range(offset, offset+limit-1)
     if status:
         query = query.eq("status", status)
+    if user_id:
+        query = query.eq("user_id", user_id)
     result = query.execute()
     return {"reports": result.data, "total": len(result.data)}
 

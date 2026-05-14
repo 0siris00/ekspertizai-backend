@@ -1,5 +1,34 @@
+from fastapi import APIRouter, HTTPException, BackgroundTasks, UploadFile, File, Form
+
+import asyncio
+
+async def do_analysis_background(report_id: str, tmp_path: str, file_type: str, user_id: str):
+    from utils.supabase_client import get_supabase
+    from agents.orchestrator import analyze_report_smart
+    from datetime import datetime
+    import os
+    db = get_supabase()
+    try:
+        result = await analyze_report_smart(tmp_path, file_type, user_id or "anonymous")
+        db.table("reports").update({
+            "status": "completed",
+            "result": result,
+            "updated_at": datetime.now().isoformat()
+        }).eq("id", report_id).execute()
+        if user_id and result.get("success"):
+            user = db.table("users").select("free_analyses,total_analyses").eq("id", user_id).execute()
+            if user.data:
+                db.table("users").update({
+                    "free_analyses": max(0, user.data[0].get("free_analyses", 1) - 1),
+                    "total_analyses": user.data[0].get("total_analyses", 0) + 1
+                }).eq("id", user_id).execute()
+    except Exception as e:
+        db.table("reports").update({"status": "error", "updated_at": datetime.now().isoformat()}).eq("id", report_id).execute()
+    finally:
+        try: os.unlink(tmp_path)
+        except: pass
+
 from utils.supabase_client import get_supabase
-from fastapi import APIRouter
 router = APIRouter()
 
 @router.get("/status/{report_id}")
@@ -25,8 +54,7 @@ async def analyze_report(data: ReportAnalysisRequest):
     if data.user_id:
         user = db.table("users").select("free_analyses").eq("id", data.user_id).execute()
         if user.data and user.data[0].get("free_analyses", 0) <= 0:
-            from fastapi import HTTPException
-            raise HTTPException(status_code=402, detail="Analiz hakkı kalmadı")
+                        raise HTTPException(status_code=402, detail="Analiz hakkı kalmadı")
 
     # Raporu DB'ye kaydet
     report_record = {
@@ -69,10 +97,10 @@ async def analyze_report(data: ReportAnalysisRequest):
         raise
 
 import tempfile, os
-from fastapi import UploadFile, File, Form
 
 @router.post("/analysis/upload")
 async def upload_and_analyze(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
     user_id: Optional[str] = Form(None)
 ):
@@ -91,38 +119,38 @@ async def upload_and_analyze(
         tmp.write(content)
         tmp_path = tmp.name
 
-    try:
-        # Raporu DB'ye kaydet
-        report_record = {
-            "user_id": user_id,
-            "status": "processing",
-            "created_at": datetime.now().isoformat()
-        }
-        report_result = db.table("reports").insert(report_record).execute()
-        report_id = report_result.data[0]["id"] if report_result.data else None
+    # Dosya hash hesapla — aynı dosya tekrar yüklenirse eski analizi dön
+    import hashlib
+    content_hash = hashlib.md5(content).hexdigest()
 
-        # AI analizi — dosya ile
-        file_type = "pdf" if suffix.lower() == ".pdf" else "image"
-        from agents.orchestrator import analyze_report, analyze_report_smart
-        result = await analyze_report_smart(tmp_path, file_type, user_id or "anonymous")
-
-        if report_id:
-            db.table("reports").update({
-                "status": "completed",
-                "result": result,
-                "updated_at": datetime.now().isoformat()
-            }).eq("id", report_id).execute()
-
-        # Analiz hakkı düş
-        if user_id and result.get("success"):
-            user = db.table("users").select("free_analyses,total_analyses").eq("id", user_id).execute()
-            if user.data:
-                db.table("users").update({
-                    "free_analyses": max(0, user.data[0].get("free_analyses", 1) - 1),
-                    "total_analyses": user.data[0].get("total_analyses", 0) + 1
-                }).eq("id", user_id).execute()
-
-        return {"success": True, "report_id": report_id, "result": result}
-
-    finally:
+    existing = db.table("reports").select("id,status,result").eq("file_hash", content_hash).eq("status", "completed").execute()
+    if existing.data and existing.data[0].get("result"):
         os.unlink(tmp_path)
+        old_report = existing.data[0]
+        # Bu kullanıcıya da kaydet
+        if user_id:
+            db.table("reports").insert({
+                "user_id": user_id,
+                "file_hash": content_hash,
+                "status": "completed",
+                "result": old_report["result"],
+                "created_at": datetime.now().isoformat()
+            }).execute()
+        return {"success": True, "report_id": old_report["id"], "status": "completed", "cached": True}
+
+    # Raporu DB'ye kaydet
+    report_record = {
+        "user_id": user_id,
+        "file_hash": content_hash,
+        "status": "processing",
+        "created_at": datetime.now().isoformat()
+    }
+    report_result = db.table("reports").insert(report_record).execute()
+    report_id = report_result.data[0]["id"] if report_result.data else None
+
+    file_type = "pdf" if suffix.lower() == ".pdf" else "image"
+
+    # Arka planda analiz başlat
+    background_tasks.add_task(do_analysis_background, report_id, tmp_path, file_type, user_id or "anonymous")
+
+    return {"success": True, "report_id": report_id, "status": "processing"}
