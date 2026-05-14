@@ -342,7 +342,10 @@ textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);b
 </div>
 
 <!-- ARAÇ ANALİZ GİRİŞ -->
-<div class="screen" id="screen-arac-analiz">
+<div class="screen" id="screen-arac-analiz"
+  ondragover="event.preventDefault();event.stopPropagation();document.getElementById('img-drop-zone').style.borderColor='var(--accent)'"
+  ondragleave="document.getElementById('img-drop-zone').style.borderColor='var(--border2)'"
+  ondrop="event.preventDefault();event.stopPropagation();handleImgDrop(event)">
   <div style="padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
     <button onclick="navTab('home')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px">←</button>
     <span style="font-family:'Syne',sans-serif;font-weight:600;font-size:16px">Aracı Analiz Et</span>
@@ -470,7 +473,10 @@ textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);b
 </div>
 
 <!-- RAPOR YÜKLEME EKRANI -->
-<div class="screen" id="screen-upload">
+<div class="screen" id="screen-upload"
+  ondragover="event.preventDefault();event.stopPropagation();document.getElementById('pdf-drop-zone').style.borderColor='var(--accent)'"
+  ondragleave="document.getElementById('pdf-drop-zone').style.borderColor='var(--border2)'"
+  ondrop="event.preventDefault();event.stopPropagation();handleFileDrop(event)">
   <div style="padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
     <button onclick="navTab('home')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px">←</button>
     <span style="font-family:'Syne',sans-serif;font-weight:600;font-size:16px">Raporu Analiz Et</span>
@@ -481,11 +487,12 @@ textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);b
     </div>
 
     <!-- PDF Yükleme -->
-    <div id="pdf-drop-zone" style="background:var(--surface);border:2px dashed var(--border2);border-radius:var(--radius);padding:2rem;text-align:center;margin-bottom:.75rem;cursor:pointer;transition:.2s" onclick="document.getElementById('pdf-input').click()" ondragover="event.preventDefault();this.style.borderColor='var(--accent)'" ondragleave="this.style.borderColor='var(--border2)'" ondrop="handleFileDrop(event)">
+    <div id="pdf-drop-zone" style="background:var(--surface);border:2px dashed var(--border2);border-radius:var(--radius);padding:2rem;text-align:center;margin-bottom:.75rem;cursor:pointer;transition:.2s" onclick="document.getElementById('pdf-input').click()">
       <div style="font-size:36px;margin-bottom:.75rem">📄</div>
       <div style="font-size:14px;font-weight:500;margin-bottom:.3rem">PDF Rapor Yükle</div>
-      <div style="font-size:12px;color:var(--muted)">Tıkla veya sürükle bırak</div>
-      <input type="file" id="pdf-input" accept=".pdf,image/*" style="display:none" onchange="handleFileSelect(this)">
+      <div style="font-size:12px;color:var(--muted)">Tıkla veya dosyaları buraya sürükle bırak</div>
+      <div style="font-size:11px;color:#555;margin-top:4px">PDF, JPG, PNG · Birden fazla sayfa seçebilirsiniz</div>
+      <input type="file" id="pdf-input" accept=".pdf,image/*" multiple style="display:none" onchange="handleFileSelect(this)">
     </div>
 
     <div style="text-align:center;font-size:12px;color:#444;margin:.5rem 0">— veya —</div>
@@ -498,8 +505,8 @@ textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);b
       ondrop="handleImgDrop(event)">
       <div style="font-size:28px;margin-bottom:.5rem">📸</div>
       <div style="font-size:13px;font-weight:500;margin-bottom:.2rem">Rapor Fotoğrafı Çek/Yükle</div>
-      <div style="font-size:12px;color:var(--muted)">JPG, PNG · Birden fazla fotoğraf seçebilirsiniz</div>
-      <input type="file" id="img-input" accept="image/*" multiple style="display:none" onchange="handleFileSelect(this)">
+      <div style="font-size:12px;color:var(--muted)">Tıkla veya sürükle bırak · Birden fazla fotoğraf seçebilirsiniz</div>
+      <input type="file" id="img-input" accept="image/*,application/pdf" multiple style="display:none" onchange="handleFileSelect(this)">
     </div>
     <div id="img-preview" style="display:none;display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem"></div>
 
@@ -860,7 +867,7 @@ async function startAracAnaliz(){
     let att=0;
     const poll=setInterval(async()=>{
       att++;
-      if(att>100){clearInterval(poll);clearInterval(stInt);document.getElementById('loadingSection').classList.remove('active');alert('Zaman aşımı.');return;}
+      if(att>100){clearInterval(poll);clearInterval(stInt);window._analyzing=false;document.getElementById('loadingSection').classList.remove('active');alert('Zaman aşımı.');return;}
       try{
         const r=await fetch('/api/v1/jobs/'+rid);
         const j=await r.json();
@@ -1064,6 +1071,7 @@ window.addEventListener('load',()=>{
 
 // ─── UPLOAD ─────────────────────────────────────────────
 let selectedFile = null;
+let selectedFiles = [];
 
 function handleImgDrop(e){
   e.preventDefault();
@@ -1072,7 +1080,8 @@ function handleImgDrop(e){
   if(files.length>0) setMultipleFiles(files);
 }
 function setMultipleFiles(files){
-  selectedFile = files[0]; // Ana dosya ilk fotoğraf
+  selectedFile = files[0];
+  selectedFiles = Array.from(files);
   const info=document.getElementById('selected-file-info');
   const name=document.getElementById('selected-file-name');
   if(info&&name){
@@ -1131,9 +1140,19 @@ async function startUploadAnaliz(){
     if(si<steps.length) document.getElementById(steps[si]).className='step-active';
     si++; if(si>steps.length) clearInterval(stInt);
   },8000);
+  // Aynı anda birden fazla araç analizi kontrolü
+  if(typeof window._analyzing !== 'undefined' && window._analyzing){
+    alert('Şu anda bir analiz devam ediyor. Lütfen tamamlanmasını bekleyin.');
+    document.getElementById('loadingSection').classList.remove('active');
+    return;
+  }
+  window._analyzing = true;
+  
   try{
     const fd=new FormData();
-    fd.append('file',selectedFile);
+    // Çoklu fotoğraf varsa hepsini ekle
+    const filesToSend = selectedFiles.length > 0 ? selectedFiles : [selectedFile];
+    filesToSend.forEach((f,i) => fd.append(i===0?'file':'file'+i, f));
     if(currentUserId) fd.append('user_id',currentUserId);
     const res=await fetch('/api/v1/analysis/upload',{method:'POST',body:fd});
     const data=await res.json();
@@ -1171,6 +1190,7 @@ async function startUploadAnaliz(){
           else{document.getElementById('loadingSection').classList.remove('active');alert('Analiz tamamlanamadı. Net PDF yükleyin.');showScreen('upload');}
         } else if(j.status==='error'){
           clearInterval(poll);clearInterval(stInt);
+          window._analyzing=false;
           document.getElementById('loadingSection').classList.remove('active');
           alert('Analiz başarısız. Tekrar deneyin.');showScreen('upload');
         }
@@ -1178,6 +1198,7 @@ async function startUploadAnaliz(){
     },3000);
   }catch(e){
     clearInterval(stInt);
+    window._analyzing=false;
     document.getElementById('loadingSection').classList.remove('active');
     alert('Bağlantı hatası.');showScreen('upload');
   }
