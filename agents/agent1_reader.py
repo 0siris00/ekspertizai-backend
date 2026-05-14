@@ -32,7 +32,7 @@ def extract_text_from_image(file_path: str) -> str:
             resp = client.messages.create(model="claude-haiku-4-5", max_tokens=2000,
                 messages=[{"role":"user","content":[
                     {"type":"image","source":{"type":"base64","media_type":"image/jpeg","data":image_data}},
-                    {"type":"text","text":"Bu ekspertiz raporu sayfasindaki tum metni yaz."}
+                    {"type":"text","text":"Bu ilan veya ekspertiz raporu gorselindeki tum metni aynen yaz. Ozellikle aracin konumu, il ve ilce bilgisi, plaka, marka, model, km, fiyat bilgilerini mutlaka dahil et."}
                 ]}])
             all_text.append(resp.content[0].text)
         doc.close()
@@ -45,7 +45,7 @@ def extract_text_from_image(file_path: str) -> str:
         max_tokens=2000,
         messages=[{"role": "user", "content": [
             {"type": "image", "source": {"type": "base64", "media_type": media_type, "data": image_data}},
-            {"type": "text", "text": "Bu ekspertiz raporu görselindeki tüm metni olduğu gibi yaz. Hiçbir şeyi atlama."}
+            {"type": "text", "text": "Bu ilan veya ekspertiz raporu görselindeki tüm metni olduğu gibi yaz. Araç konumu (il, ilçe), plaka, marka, model, km, fiyat bilgilerini mutlaka dahil et."}
         ]}]
     )
     return response.content[0].text
@@ -74,6 +74,15 @@ def parse_vehicle_info(text: str) -> dict:
     info = {}
     plaka = re.search(r'PLAKA\s*[:\s]+([A-Z0-9]{2,8})', text, re.IGNORECASE)
     if plaka: info["plaka"] = plaka.group(1).strip()
+    # Metin içinden il/ilçe çıkar
+    for pattern in [r'(?:Konum|Şehir|İl|Bulunduğu İl)\s*[:\s]+([A-ZÇĞİÖŞÜa-zçğıöşü]+)', r'([A-ZÇĞİÖŞÜ][a-zçğıöşü]+)\s*[/,]\s*([A-ZÇĞİÖŞÜ][a-zçğıöşü]+)\s+ilanı']:
+        m = re.search(pattern, text, re.IGNORECASE)
+        if m: info["il"] = m.group(1).strip()[:30]; break
+    ilce_m = re.search(r"(?:Ilce|Semt|İlçe)[:\s]+([A-Za-z\s]+?)(?:\n|,|$)", text, re.IGNORECASE)
+    if ilce_m: info["ilce"] = ilce_m.group(1).strip()[:30]
+    # Sahibinden formatı: "İstanbul Büyükçekmece" gibi
+    sehir_m = re.search(r"(Istanbul|Ankara|Izmir|Bursa|Antalya|Adana|Konya|Mersin|Kocaeli|Samsun|Gaziantep|Balikesir|Denizli|Sakarya|Trabzon|Eskisehir|Kayseri)", text, re.IGNORECASE)
+    if sehir_m and not info.get("il"): info["il"] = sehir_m.group(1)
     marka = re.search(r'MARKA\s*[:\s]+([A-ZÇĞİÖŞÜa-z\s\-]+?)(?:\n|MODEL)', text, re.IGNORECASE)
     if marka: info["marka"] = marka.group(1).strip()
     model = re.search(r'MODEL\s*[:\s]+([A-Za-z0-9\s\.\-]+?)(?:\n|ÜRETİM|YIL)', text, re.IGNORECASE)
