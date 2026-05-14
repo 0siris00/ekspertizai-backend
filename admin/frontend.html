@@ -370,13 +370,13 @@ textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);b
 <!-- ARAÇ ANALİZ LOADING -->
 <div class="loading-state" id="aracLoadingSection">
   <div class="spinner"></div>
-  <p style="font-family:'Syne',sans-serif;font-size:16px;font-weight:600;margin-bottom:1.5rem">Araç analiz ediliyor...</p>
+  <p style="font-family:'Syne',sans-serif;font-size:16px;font-weight:600;margin-bottom:1.5rem">Fotoğraf analiz ediliyor...</p>
   <ul class="loading-steps">
-    <li id="as1"><span class="step-dot"></span>İlan bilgileri okunuyor</li>
-    <li id="as2"><span class="step-dot"></span>Fiyat piyasayla karşılaştırılıyor</li>
+    <li id="as1"><span class="step-dot"></span>Fotoğraf okunuyor</li>
+    <li id="as2"><span class="step-dot"></span>Araç modeli tespit ediliyor</li>
     <li id="as3"><span class="step-dot"></span>Kronik sorunlar sorgulanıyor</li>
-    <li id="as4"><span class="step-dot"></span>Satıcı soruları hazırlanıyor</li>
-    <li id="as5"><span class="step-dot"></span>Yakın ekspertizler listeleniyor</li>
+    <li id="as4"><span class="step-dot"></span>Bölgedeki ekspertizler listeleniyor</li>
+    <li id="as5"><span class="step-dot"></span>Sonuç hazırlanıyor</li>
   </ul>
 </div>
 
@@ -384,8 +384,14 @@ textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);b
 <div class="screen" id="screen-arac-sonuc">
   <div style="padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
     <button onclick="showScreen('arac-analiz')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px">←</button>
-    <span style="font-family:'Syne',sans-serif;font-weight:600;font-size:16px">2019 Renault Clio 1.5 dCi</span>
+    <span style="font-family:'Syne',sans-serif;font-weight:600;font-size:16px" id="arac-sonuc-title">Araç Analizi</span>
   </div>
+  <div id="arac-sonuc-content" style="max-width:680px;margin:0 auto;padding:1.5rem 1.5rem 3rem">
+    <div style="text-align:center;padding:3rem 1rem;color:var(--muted)">Analiz yükleniyor...</div>
+  </div>
+</div>
+<!-- ARAÇ ANALİZ SONUÇ ESKI (kaldırıldı) -->
+<div style="display:none" id="screen-arac-sonuc-old">
   <div style="max-width:680px;margin:0 auto;padding:1.5rem 1.5rem 3rem">
     
     <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem">
@@ -485,12 +491,17 @@ textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);b
     <div style="text-align:center;font-size:12px;color:#444;margin:.5rem 0">— veya —</div>
 
     <!-- Fotoğraf Yükleme -->
-    <div style="background:var(--surface);border:2px dashed var(--border2);border-radius:var(--radius);padding:1.5rem;text-align:center;margin-bottom:1.25rem;cursor:pointer;transition:.2s" onclick="document.getElementById('img-input').click()">
+    <div id="img-drop-zone" style="background:var(--surface);border:2px dashed var(--border2);border-radius:var(--radius);padding:1.5rem;text-align:center;margin-bottom:1.25rem;cursor:pointer;transition:.2s"
+      onclick="document.getElementById('img-input').click()"
+      ondragover="event.preventDefault();this.style.borderColor='var(--accent)'"
+      ondragleave="this.style.borderColor='var(--border2)'"
+      ondrop="handleImgDrop(event)">
       <div style="font-size:28px;margin-bottom:.5rem">📸</div>
       <div style="font-size:13px;font-weight:500;margin-bottom:.2rem">Rapor Fotoğrafı Çek/Yükle</div>
-      <div style="font-size:12px;color:var(--muted)">JPG, PNG desteklenir</div>
-      <input type="file" id="img-input" accept="image/*" capture="environment" style="display:none" onchange="handleFileSelect(this)">
+      <div style="font-size:12px;color:var(--muted)">JPG, PNG · Birden fazla fotoğraf seçebilirsiniz</div>
+      <input type="file" id="img-input" accept="image/*" multiple style="display:none" onchange="handleFileSelect(this)">
     </div>
+    <div id="img-preview" style="display:none;display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem"></div>
 
     <!-- Seçilen dosya göster -->
     <div id="selected-file-info" style="display:none;background:rgba(76,175,125,.1);border:1px solid rgba(76,175,125,.25);border-radius:10px;padding:.75rem 1rem;margin-bottom:1rem;font-size:13px;color:var(--green);display:flex;align-items:center;gap:8px">
@@ -509,13 +520,13 @@ textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);b
 <!-- RAPOR LOADING -->
 <div class="loading-state" id="loadingSection">
   <div class="spinner"></div>
-  <p style="font-family:'Syne',sans-serif;font-size:16px;font-weight:600;margin-bottom:1.5rem">Rapor analiz ediliyor...</p>
+  <p style="font-family:'Syne',sans-serif;font-size:16px;font-weight:600;margin-bottom:1.5rem" id="loading-title">Rapor analiz ediliyor...</p>
   <ul class="loading-steps" id="loadingSteps">
-    <li id="step1"><span class="step-dot"></span>Rapor okunuyor ve ayrıştırılıyor</li>
-    <li id="step2"><span class="step-dot"></span>Güvenlik bulguları değerlendiriliyor</li>
-    <li id="step3"><span class="step-dot"></span>Mekanik durum analiz ediliyor</li>
-    <li id="step4"><span class="step-dot"></span>Maliyet tahmini hesaplanıyor</li>
-    <li id="step5"><span class="step-dot"></span>Sonuç raporu hazırlanıyor</li>
+    <li id="step1"><span class="step-dot"></span>Fotoğraf okunuyor ve araç tespit ediliyor</li>
+    <li id="step2"><span class="step-dot"></span>İl ve ilçe bilgisi tespit ediliyor</li>
+    <li id="step3"><span class="step-dot"></span>Kronik sorunlar araştırılıyor</li>
+    <li id="step4"><span class="step-dot"></span>Bölgedeki ekspertizler listeleniyor</li>
+    <li id="step5"><span class="step-dot"></span>Satıcı soruları hazırlanıyor</li>
   </ul>
 </div>
 
@@ -562,8 +573,7 @@ textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);b
       </div>
     </div><div style="flex:1"><div style="font-size:14px;font-weight:500">Uzman Görüşmesi</div><div style="font-size:12px;color:var(--muted)">Kura ödülü · 2 Mart 2026</div></div><span class="prize-badge used">Kullanıldı</span></div>
     <div class="section-title-sm" style="margin:1.5rem 0 .75rem" data-section="analizlerim">ANALİZLERİM</div>
-    <div id="reports-container"><div style="font-size:13px;color:var(--muted);padding:.5rem 0">Henüz analiziniz yok.</div></div><div style="flex:1"><div style="font-size:14px;font-weight:500">2020 Toyota Corolla</div><div style="font-size:12px;color:var(--muted)">16 TK 5678 · 15 Nisan 2026</div></div><div style="font-size:12px;color:var(--muted)">PDF ↓</div></div>
-  </div>
+    <div id="reports-container"><div style="font-size:13px;color:var(--muted);padding:.5rem 0">Henüz analiziniz yok.</div></div>
 </div>
 
 
@@ -571,7 +581,330 @@ textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);b
 </div>
 
 <script>
-let pendingAction=null,loggedIn=false,currentUserId=null;
+const REPORT_TEXT=`Araç: 2013 KIA SPORTAGE | Plaka: 26B6537 | KM: 118.303 | Manuel Benzin
+NOTLAR:
+- KARTERDE YAĞ SIZINTISI MEVCUT
+- ROTİLLERDE DEFORMASYON MEVCUT
+- PERİYODİK BAKIM ÖNERİLİR
+ŞASE: Tüm şase ve podye parçaları ORİJİNAL
+SAĞ ÖN ÇAMURLUK: ORİJİNAL GÖÇÜK ONARIM`;
+
+const STATION_HTML=`
+<div style="max-width:720px;margin:0 auto;padding:0 1.5rem 1rem">
+  <div class="section-title-sm">RAPORUN YAPILDIĞI YER</div>
+  <div class="station-top-card">
+    <div class="station-top-inner">
+      <div class="station-logo">DB</div>
+      <div style="flex:1">
+        <div style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:2px" id="result-station-name">Ekspertiz İstasyonu</div>
+        <div style="font-size:12px;color:var(--muted)" id="result-station-addr"></div>
+      </div>
+    </div>
+  </div>
+</div>`;
+
+function getStatusLabel(v){
+  if(!v) return 'Analiz Tamamlandı';
+  const s=typeof v==='string'?v.toLowerCase():'';
+  if(s.includes('dikkat')||s==='red'||s==='c') return 'Dikkat Gerektiren Bulgular Mevcut';
+  if(s.includes('incelenmeli')||s==='yellow'||s==='b') return 'İncelenmesi Önerilen Bulgular Var';
+  if(s.includes('iyi')||s==='green'||s==='a') return 'Belirgin Sorun Tespit Edilmedi';
+  return 'Analiz Tamamlandı';
+}
+
+function showResult(r){
+  document.getElementById('loadingSection').classList.remove('active');
+  try{sessionStorage.setItem('last_result',JSON.stringify(r));}catch(e){}
+  const sc={green:'sg',yellow:'sy',red:'sr',info:'sg'};
+  const fc={green:'var(--green)',yellow:'var(--yellow)',red:'var(--red)',info:'var(--muted)',warning:'var(--yellow)'};
+  const verdict=r.verdict||{};
+  const statusLabel=verdict.statusLabel||getStatusLabel(verdict.status||verdict);
+  const statusColor=verdict.statusColor||'yellow';
+  const vbClass='vb-'+(statusColor==='red'?'C':statusColor==='green'?'A':'B');
+  let sumText=r.summary||'';
+  if(r.glossary){Object.entries(r.glossary).forEach(([t,d])=>{sumText=sumText.replace(new RegExp('('+t+')','gi'),'<span class="term">$1<span class="term-tip">'+d+'</span></span>');});}
+  const vi=r.vehicleInfo||r.vehicle_info||{};
+  const aracAdi=((vi.marka||'')+(vi.model?' '+vi.model:'')).trim()||'Araç';
+  const cats=(r.categories||[]).map(cat=>{
+    const sc2=sc[cat.score]||'sy';
+    const findings=(cat.findings||[]).map(f=>'<li><span class="find-dot" style="background:'+(fc[f.level]||'var(--muted)')+'"></span>'+f.text+'</li>').join('');
+    return '<div class="cat-card"><div class="cat-header"><span class="cat-title">'+(cat.category||cat.name||'').toUpperCase()+'</span><span class="cat-score '+sc2+'">'+(cat.scoreLabel||'')+'</span></div><ul class="cat-findings">'+findings+'</ul></div>';
+  }).join('');
+  const costs=(r.costs||[]).map(c2=>'<div class="cost-row"><span style="color:#ccc">'+c2.label+'</span><span style="font-family:Syne,sans-serif;font-weight:600">'+c2.amount+'</span></div>').join('');
+  // İstasyon bilgisini DB'den çek
+  const stationName = r.vehicleInfo?.ekspertiz_firmasi || r.vehicle_info?.ekspertiz_firmasi || '';
+  if(stationName){
+    fetch('/api/v1/stations?limit=5')
+      .then(r=>r.json())
+      .then(d=>{
+        const nameEl=document.getElementById('result-station-name');
+        const addrEl=document.getElementById('result-station-addr');
+        if(d.stations&&d.stations.length>0){
+          // İstasyon adı veya franchise ile eşleştir
+          const match = d.stations.find(s=>
+            s.ad?.toLowerCase().includes(stationName.toLowerCase())||
+            s.franchise?.toLowerCase().includes(stationName.toLowerCase())||
+            stationName.toLowerCase().includes((s.franchise||'').toLowerCase())
+          ) || d.stations[0];
+          if(nameEl) nameEl.textContent=match.ad||stationName;
+          if(addrEl) addrEl.textContent=(match.ilce||'')+(match.il?', '+match.il:'')+(match.telefon?' · '+match.telefon:'');
+        } else {
+          if(nameEl) nameEl.textContent=stationName;
+        }
+      }).catch(()=>{if(document.getElementById('result-station-name')) document.getElementById('result-station-name').textContent=stationName;});
+  }
+  document.getElementById('resultContent').innerHTML=STATION_HTML+`
+    <div style="max-width:720px;margin:0 auto;padding:0 1.5rem">
+      <div class="result-header">
+        <div class="vehicle-info"><h2>${aracAdi}</h2><p>${vi.plaka||''} ${vi.km?(vi.km.toLocaleString('tr-TR')+' km'):''}${vi.yakit?' · '+vi.yakit:''}</p></div>
+        <div class="verdict-badge-big ${vbClass}">${statusLabel}</div>
+      </div>
+      <div class="summary-box">${sumText}</div>
+      <div class="categories">${cats}</div>
+      <div class="cost-section"><div class="section-title-sm">TAHMİNİ MASRAF KALEMLERİ</div>${costs}<div class="cost-row"><span style="color:#ccc;font-weight:500">Toplam</span><span style="font-family:Syne,sans-serif;font-weight:700;color:var(--accent2)">${(r.totalCostMin||0).toLocaleString('tr-TR')} – ${(r.totalCostMax||0).toLocaleString('tr-TR')} ₺</span></div></div>
+      <div class="section-title-sm">UZMAN HİZMETLERİ</div>
+      <div class="service-card"><div class="service-icon" style="background:rgba(232,98,42,.15)">📞</div><div style="flex:1"><div class="service-title">Uzman'a Sor</div><div class="service-desc">15 dk telefon görüşmesi</div></div><div style="text-align:right;flex-shrink:0"><div class="price-tag">199 ₺<small>/ görüşme</small></div><button class="btn-buy">Talep Et</button></div></div>
+      <div class="review-section" style="margin-top:1rem">
+        <div class="section-title-sm">EKSPERTİZ HAKKINDA YORUM YAP</div>
+        <div class="stars-input" id="starsInput"><button class="star-btn" onclick="setStar(1)">★</button><button class="star-btn" onclick="setStar(2)">★</button><button class="star-btn" onclick="setStar(3)">★</button><button class="star-btn" onclick="setStar(4)">★</button><button class="star-btn" onclick="setStar(5)">★</button></div>
+        <textarea rows="3" placeholder="Ekspertiz süreci nasıldı?"></textarea>
+        <div class="reward-note">🎁 Yorum yapanlara kura ile ödül</div>
+        <button class="btn-submit">Yorumu Gönder</button>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem 1.5rem;margin-top:1rem;margin-bottom:1.5rem;display:flex;align-items:center;gap:14px">
+        <div style="font-size:24px;flex-shrink:0">🛡️</div>
+        <div style="flex:1"><div style="font-size:14px;font-weight:500">Sigorta Teklifleri</div><div style="font-size:12px;color:var(--muted)">Araç bilgileri otomatik dolduruldu</div></div>
+        <button onclick="document.getElementById('modal-sigorta').classList.add('open')" class="btn-buy">Teklifleri Gör</button>
+      </div>
+      <p class="disclaimer">${r.disclaimer||'Bu analiz yapay zeka desteklidir, bilgilendirme amaçlıdır. Bağlayıcı değildir.'}</p>
+    </div>`;
+  document.getElementById('resultSection').classList.add('active');
+  window.scrollTo(0,0);
+}
+
+
+function showAracResult(r){
+  document.getElementById('loadingSection').classList.remove('active');
+  const vi=r.vehicleInfo||r.vehicle_info||{};
+  const aracAdi=((vi.marka||'')+(vi.model?' '+vi.model:'')).trim()||'Araç Analizi';
+  document.getElementById('arac-sonuc-title').textContent=aracAdi;
+
+  const verdict=r.verdict||{};
+  const statusLabel=verdict.statusLabel||getStatusLabel(verdict.status||'');
+  const statusColor=verdict.statusColor||'yellow';
+  const vbClass='vb-'+(statusColor==='red'?'C':statusColor==='green'?'A':'B');
+
+  // Kronik sorunlar — mekanik kategoriden
+  const mekanik=r.categories?.find(cat=>cat.category==='Mekanik'||cat.category==='mekanik');
+  const mekanikHTML = mekanik?.findings?.length>0 ? mekanik.findings.filter(f=>f.level!=='info').map(f=>`<div style="font-size:13px;display:flex;gap:8px;padding:4px 0"><span style="color:${f.level==='red'?'var(--red)':f.level==='green'?'var(--green)':'var(--yellow)'}>⚠</span>${f.text}</div>`).join('') : '';
+  let kronikHTML = mekanikHTML || '<div id="kronik-loading" style="font-size:13px;color:var(--muted)">Araştırılıyor...</div>';
+
+  // Yakın ekspertizler API'den
+  const il = 'Bursa'; // Kullanıcı konumundan gelecek
+  
+  document.getElementById('arac-sonuc-content').innerHTML = `
+    <div class="result-header">
+      <div class="vehicle-info"><h2>${aracAdi}</h2><p>${vi.plaka||''} ${vi.km?vi.km.toLocaleString('tr-TR')+' km':''}</p></div>
+      <div class="verdict-badge-big ${vbClass}">${statusLabel}</div>
+    </div>
+    <div class="summary-box">${r.summary||''}</div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-bottom:1rem">
+      <div class="section-title-sm">KRONİK SORUNLAR & MEKANİK BULGULAR</div>
+      ${kronikHTML}
+    </div>
+    <div style="margin-bottom:1rem">
+      <button onclick="document.getElementById('modal-randevu').classList.add('open')" style="width:100%;background:rgba(232,98,42,.12);border:1px solid rgba(232,98,42,.3);color:var(--accent2);padding:12px;border-radius:var(--radius);font-family:'Syne',sans-serif;font-size:14px;font-weight:600;cursor:pointer">📅 Ekspertiz Randevusu Al</button>
+    </div>
+    <div class="section-title-sm">BÖLGENİZDEKİ EKSPERTİZLER</div>
+    <div id="arac-stations-list"><div style="font-size:13px;color:var(--muted)">Yükleniyor...</div></div>
+    <div style="margin-top:1.5rem;margin-left:calc(-1.5rem);margin-right:calc(-1.5rem)">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:.5rem;padding:0 1.5rem;display:flex;justify-content:space-between">
+        <span id="mapLabel2">Bölgedeki ekspertiz istasyonları</span>
+        <span style="font-size:10px;color:#444">Ayda bir güncellenir</span>
+      </div>
+      <iframe id="aracMapFrame" src="about:blank" width="100%" height="300" style="border:none;filter:invert(90%) hue-rotate(180deg)" loading="lazy"></iframe>
+    </div>
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem;margin-top:1.5rem;margin-bottom:1rem">
+      <div class="section-title-sm">SATICIYA SORULACAK SORULAR</div>
+      <div id="satici-sorular" style="display:flex;flex-direction:column;gap:6px;margin-bottom:.75rem">
+        <div style="font-size:13px;color:#ccc;padding:6px 10px;background:var(--surface2);border-radius:7px">1. Araçta daha önce kaza veya hasar var mıydı?</div>
+        <div style="font-size:13px;color:#ccc;padding:6px 10px;background:var(--surface2);border-radius:7px">2. Servis geçmişi ve bakım kayıtları mevcut mu?</div>
+        <div style="font-size:13px;color:#ccc;padding:6px 10px;background:var(--surface2);border-radius:7px">3. Triger/zamanlama kayışı ne zaman değiştirildi?</div>
+        <div style="font-size:13px;color:#ccc;padding:6px 10px;background:var(--surface2);border-radius:7px">4. Araç kaç sahipli?</div>
+        <div style="font-size:13px;color:#ccc;padding:6px 10px;background:var(--surface2);border-radius:7px">5. Herhangi bir parça değiştirildi mi?</div>
+      </div>
+      <button onclick="copySaticiSorular()" style="width:100%;background:transparent;border:1px solid var(--border2);color:var(--muted);padding:9px;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer">📋 Soruları Kopyala (WhatsApp için)</button>
+    </div>
+    <button class="reset-btn" onclick="showScreen('arac-analiz')">← Yeni analiz</button>
+  `;
+
+  // Ekspertizleri yükle
+  // İl/ilçe bilgisini AI sonucundan çıkar
+  const aracIl = r.vehicleInfo?.il || r.il || vi.il || userIl || 'Bursa';
+  const aracIlce = r.vehicleInfo?.ilce || r.ilce || vi.ilce || '';
+
+    fetch('/api/v1/stations?limit=4&il='+encodeURIComponent(aracIl))
+    .then(res=>res.json())
+    .then(data=>{
+      const list=document.getElementById('arac-stations-list');
+      if(!list) return;
+      if(data.stations?.length>0){
+        list.innerHTML='<div class="station-grid">'+data.stations.slice(0,4).map(st=>`
+          <div class="station-card ${st.sponsor_level>0?'featured':''}">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:.5rem">
+              <div class="station-logo-sm">${(st.franchise||st.ad||'?')[0]}</div>
+              <div><div style="font-size:13px;font-weight:500">${st.ad||'İstasyon'} ${st.sponsor_level>0?'<span class="featured-pill">Öne Çıkan</span>':''}</div>
+              <div style="font-size:11px;color:var(--muted)">${st.ilce||''}</div></div>
+            </div>
+            ${st.puan?'<div style="font-size:12px;color:var(--yellow)">★ '+st.puan+'</div>':''}
+          </div>`).join('')+'</div>';
+        // Harita güncelle
+        const frame=document.getElementById('aracMapFrame');
+        const mapQuery = encodeURIComponent('oto ekspertiz '+(aracIlce||aracIl));
+        if(frame) frame.src='https://maps.google.com/maps?q='+mapQuery+'&output=embed&hl=tr';
+        const mapLbl=document.getElementById('mapLabel2');
+        if(mapLbl) mapLbl.textContent=(aracIlce||aracIl)+' bölgesindeki ekspertiz istasyonları';
+      }
+    }).catch(()=>{});
+
+  showScreen('arac-sonuc');
+  setTimeout(function(){
+    var marka = (vi.marka||'').trim();
+    var model = (vi.model||'').trim();
+    var yil = vi.yil||2015;
+    var kronikEl = document.getElementById('kronik-loading');
+    if(marka && model){
+      fetch('/api/v1/kronik?marka='+encodeURIComponent(marka)+'&model='+encodeURIComponent(model)+'&yil='+yil)
+        .then(function(res){return res.json();})
+        .then(function(d){
+          var el = document.getElementById('kronik-loading');
+          if(!el) return;
+          if(d.sorunlar && d.sorunlar.length>0){
+            el.outerHTML = d.sorunlar.map(function(s){
+              return '<div style="font-size:13px;display:flex;gap:8px;padding:4px 0"><span style="color:var(--yellow)">'+String.fromCharCode(9888)+'</span>'+s+'</div>';
+            }).join('');
+          } else {
+            el.textContent = 'Bu araç için bilinen kronik sorun bulunamadı.';
+          }
+        }).catch(function(){
+          var el = document.getElementById('kronik-loading');
+          if(el) el.textContent = 'Kronik sorunlar yüklenemedi.';
+        });
+    } else {
+      if(kronikEl) kronikEl.textContent = 'Araç bilgisi tespit edilemedi.';
+    }
+  }, 400);
+}
+function showFallback(){
+  showResult({
+    verdict:{status:'incelenmeli',statusLabel:'İncelenmesi Önerilen Bulgular Var',statusColor:'yellow'},
+    summary:'Rapor analiz edildi. Detaylar yüklenirken sorun oluştu, lütfen tekrar deneyin.',
+    categories:[],costs:[],totalCostMin:0,totalCostMax:0,
+    disclaimer:'Bu analiz yapay zeka desteklidir, bilgilendirme amaçlıdır.'
+  });
+}
+
+async function loadDemo(reportText, userId){
+  try{
+    const cached=sessionStorage.getItem('last_result');
+    if(cached&&!reportText){
+      document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+      showResult(JSON.parse(cached));return;
+    }
+  }catch(e){}
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('resultSection').classList.remove('active');
+  document.getElementById('loadingSection').classList.add('active');
+  window.scrollTo(0,0);
+  const steps=['step1','step2','step3','step4','step5'];
+  for(let i=0;i<steps.length;i++){
+    await new Promise(r=>setTimeout(r,700));
+    if(i>0) document.getElementById(steps[i-1]).className='step-done';
+    document.getElementById(steps[i]).className='step-active';
+  }
+  await new Promise(r=>setTimeout(r,400));
+  document.getElementById(steps[4]).className='step-done';
+  try{
+    const text=reportText||REPORT_TEXT;
+    const uid=userId||currentUserId;
+    const res=await fetch('/api/v1/analysis/report',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:uid,report_text:text})});
+    const data=await res.json();
+    if(data.success&&data.result&&data.result.success) showResult(data.result.data);
+    else if(data.detail==='Analiz hakkı kalmadı'){document.getElementById('loadingSection').classList.remove('active');alert('Analiz hakkınız kalmadı.');navTab('home');}
+    else showFallback();
+  }catch(e){showFallback();}
+}
+
+async function startAracAnaliz(){
+  if(!aracPhoto){alert('Lütfen bir ilan fotoğrafı seçin.');return;}
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('loadingSection').classList.add('active');
+  const lt=document.getElementById('loading-title');
+  if(lt) lt.textContent='Araç analiz ediliyor...';
+  window.scrollTo(0,0);
+  const steps=['step1','step2','step3','step4','step5'];
+  let si=0;
+  const stInt=setInterval(()=>{
+    if(si>0) document.getElementById(steps[si-1]).className='step-done';
+    if(si<steps.length) document.getElementById(steps[si]).className='step-active';
+    si++;if(si>=steps.length) clearInterval(stInt);
+  },8000);
+  try{
+    const fd=new FormData();
+    fd.append('file',aracPhoto);
+    if(currentUserId) fd.append('user_id',currentUserId);
+    const res=await fetch('/api/v1/analysis/upload',{method:'POST',body:fd});
+    const data=await res.json();
+    if(!data.success){clearInterval(stInt);document.getElementById('loadingSection').classList.remove('active');alert(data.detail||'Yükleme başarısız.');return;}
+    const rid=data.report_id;
+    let att=0;
+    const poll=setInterval(async()=>{
+      att++;
+      if(att>100){clearInterval(poll);clearInterval(stInt);document.getElementById('loadingSection').classList.remove('active');alert('Zaman aşımı.');return;}
+      try{
+        const r=await fetch('/api/v1/jobs/'+rid);
+        const j=await r.json();
+        if(j.status==='completed'){
+          clearInterval(poll);clearInterval(stInt);
+          steps.forEach(s=>document.getElementById(s).className='step-done');
+          const rd=j.result?.data||j.result;
+          if(rd&&(j.result.success||rd.verdict)) showAracResult(rd);
+          else{document.getElementById('loadingSection').classList.remove('active');alert('Analiz tamamlanamadı.');showScreen('arac-analiz');}
+        } else if(j.status==='error'){
+          clearInterval(poll);clearInterval(stInt);
+          document.getElementById('loadingSection').classList.remove('active');
+          alert('Analiz başarısız. Tekrar deneyin.');showScreen('arac-analiz');
+        }
+      }catch(e){console.error(e);}
+    },3000);
+  }catch(e){clearInterval(stInt);document.getElementById('loadingSection').classList.remove('active');alert('Bağlantı hatası.');}
+}
+
+function setStar(n){document.querySelectorAll('.star-btn').forEach((b,i)=>b.classList.toggle('active',i<n));}
+
+function copySaticiSorular(){
+  const sorular = Array.from(document.querySelectorAll('#satici-sorular div')).map(el=>el.textContent.trim()).join('\n');
+  navigator.clipboard.writeText(sorular).then(()=>{
+    alert('Sorular kopyalandi! WhatsApp veya SMS e yapistirabilirsiniz.');
+  }).catch(()=>{
+    const ta=document.createElement('textarea');
+    ta.value=sorular;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    alert('Sorular kopyalandı!');
+  });
+}
+function resetAll(){
+  document.getElementById('resultSection').classList.remove('active');
+  document.getElementById('loadingSection').classList.remove('active');
+  ['step1','step2','step3','step4','step5'].forEach(s=>{const el=document.getElementById(s);if(el)el.className='';});
+  document.getElementById('resultContent').innerHTML='';
+  navTab('home');
+}
+
+let pendingAction=null,loggedIn=false,currentUserId=null,userIl="Bursa";
 
 function requireLogin(action){
   pendingAction=action;
@@ -732,6 +1065,32 @@ window.addEventListener('load',()=>{
 // ─── UPLOAD ─────────────────────────────────────────────
 let selectedFile = null;
 
+function handleImgDrop(e){
+  e.preventDefault();
+  document.getElementById('img-drop-zone').style.borderColor='var(--border2)';
+  const files = Array.from(e.dataTransfer.files).filter(f=>f.type.startsWith('image/'));
+  if(files.length>0) setMultipleFiles(files);
+}
+function setMultipleFiles(files){
+  selectedFile = files[0]; // Ana dosya ilk fotoğraf
+  const info=document.getElementById('selected-file-info');
+  const name=document.getElementById('selected-file-name');
+  if(info&&name){
+    name.textContent = files.length > 1 ? files.length+' fotoğraf seçildi' : files[0].name;
+    info.style.display='flex';
+  }
+  // Preview göster
+  const preview = document.getElementById('img-preview');
+  if(preview){
+    preview.style.display='flex';
+    preview.innerHTML = files.slice(0,4).map(f=>{
+      const url = URL.createObjectURL(f);
+      return '<div style="width:70px;height:70px;border-radius:8px;overflow:hidden;border:1px solid var(--border2)"><img src="'+url+'" style="width:100%;height:100%;object-fit:cover"></div>';
+    }).join('') + (files.length>4 ? '<div style="width:70px;height:70px;border-radius:8px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--muted)">+'+( files.length-4)+'</div>' : '');
+  }
+  const btn=document.getElementById('analyze-btn');
+  if(btn){btn.disabled=false;btn.style.opacity='1';btn.style.cursor='pointer';}
+}
 function handleFileDrop(e){
   e.preventDefault();
   document.getElementById('pdf-drop-zone').style.borderColor='var(--border2)';
@@ -740,8 +1099,9 @@ function handleFileDrop(e){
 }
 
 function handleFileSelect(input){
-  const file=input.files[0];
-  if(file) setSelectedFile(file);
+  const files = Array.from(input.files);
+  if(files.length>1) setMultipleFiles(files);
+  else if(files.length===1) setSelectedFile(files[0]);
 }
 
 function setSelectedFile(file){
@@ -761,6 +1121,8 @@ async function startUploadAnaliz(){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('resultSection').classList.remove('active');
   document.getElementById('loadingSection').classList.add('active');
+  const lt=document.getElementById('loading-title');
+  if(lt) lt.textContent='Araç analiz ediliyor...';
   window.scrollTo(0,0);
   const steps=['step1','step2','step3','step4','step5'];
   let si=0;
@@ -781,6 +1143,17 @@ async function startUploadAnaliz(){
       if(data.detail==='Analiz hakkı kalmadı'){alert('Analiz hakkınız kalmadı.');navTab('home');}
       else{alert(data.detail||'Yükleme başarısız.');showScreen('upload');}
       return;
+    }
+    // Cached rapor — direkt göster
+    if(data.cached && data.status==='completed'){
+      clearInterval(stInt);
+      const r2=await fetch('/api/v1/jobs/'+data.report_id);
+      const j2=await r2.json();
+      if(j2.result&&j2.result.success){
+        steps.forEach(s=>document.getElementById(s).className='step-done');
+        showResult(j2.result.data);
+        return;
+      }
     }
     const rid=data.report_id;
     let att=0;
@@ -886,7 +1259,7 @@ async function loadProfile(){
       data2.reports.forEach(r=>{
         const v=r.result?.data?.verdict?.status||'';
         const cls=v==='dikkat'?'sr':v==='incelenmeli'?'sy':'sg';
-        const icon=v==='dikkat'?'!':v==='incelenmeli'?'?':'✓';
+        const icon=v==='dikkat'?'!':'✓';
         const vi=r.result?.data?.vehicleInfo||{};
         const arac=((vi.marka||'')+(vi.model?' '+vi.model:'')).trim()||'Rapor';
         const tarih=new Date(r.created_at).toLocaleDateString('tr-TR');
@@ -914,6 +1287,20 @@ async function viewReport(reportId){
   }catch(e){alert('Bağlantı hatası.');}
 }
 
+function copySaticiSorular(){
+  const sorular = Array.from(document.querySelectorAll('#satici-sorular div')).map(el=>el.textContent.trim()).join('\n');
+  navigator.clipboard.writeText(sorular).then(()=>{
+    alert('Sorular kopyalandi! WhatsApp veya SMS e yapistirabilirsiniz.');
+  }).catch(()=>{
+    const ta=document.createElement('textarea');
+    ta.value=sorular;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    alert('Sorular kopyalandı!');
+  });
+}
 function resetAll(){document.getElementById('resultSection').classList.remove('active');document.getElementById('loadingSection').classList.remove('active');['step1','step2','step3','step4','step5'].forEach(s=>{const el=document.getElementById(s);if(el)el.className='';});document.getElementById('resultContent').innerHTML='';navTab('home');}
 </script>
 </body>
