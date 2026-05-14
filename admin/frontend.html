@@ -342,10 +342,7 @@ textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);b
 </div>
 
 <!-- ARAÇ ANALİZ GİRİŞ -->
-<div class="screen" id="screen-arac-analiz"
-  ondragover="event.preventDefault();event.stopPropagation();document.getElementById('img-drop-zone').style.borderColor='var(--accent)'"
-  ondragleave="document.getElementById('img-drop-zone').style.borderColor='var(--border2)'"
-  ondrop="event.preventDefault();event.stopPropagation();handleImgDrop(event)">
+<div class="screen" id="screen-arac-analiz">
   <div style="padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
     <button onclick="navTab('home')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px">←</button>
     <span style="font-family:'Syne',sans-serif;font-weight:600;font-size:16px">Aracı Analiz Et</span>
@@ -473,10 +470,7 @@ textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);b
 </div>
 
 <!-- RAPOR YÜKLEME EKRANI -->
-<div class="screen" id="screen-upload"
-  ondragover="event.preventDefault();event.stopPropagation();document.getElementById('pdf-drop-zone').style.borderColor='var(--accent)'"
-  ondragleave="document.getElementById('pdf-drop-zone').style.borderColor='var(--border2)'"
-  ondrop="event.preventDefault();event.stopPropagation();handleFileDrop(event)">
+<div class="screen" id="screen-upload">
   <div style="padding:1rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px">
     <button onclick="navTab('home')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:18px">←</button>
     <span style="font-family:'Syne',sans-serif;font-weight:600;font-size:16px">Raporu Analiz Et</span>
@@ -492,7 +486,7 @@ textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);b
       <div style="font-size:14px;font-weight:500;margin-bottom:.3rem">PDF Rapor Yükle</div>
       <div style="font-size:12px;color:var(--muted)">Tıkla veya dosyaları buraya sürükle bırak</div>
       <div style="font-size:11px;color:#555;margin-top:4px">PDF, JPG, PNG · Birden fazla sayfa seçebilirsiniz</div>
-      <input type="file" id="pdf-input" accept=".pdf,image/*" multiple style="display:none" onchange="handleFileSelect(this)">
+      <input type="file" id="pdf-input" accept=".pdf,image/*" multiple="multiple" style="display:none" onchange="handleFileSelect(this)">
     </div>
 
     <div style="text-align:center;font-size:12px;color:#444;margin:.5rem 0">— veya —</div>
@@ -506,7 +500,7 @@ textarea{width:100%;background:var(--surface2);border:1px solid var(--border2);b
       <div style="font-size:28px;margin-bottom:.5rem">📸</div>
       <div style="font-size:13px;font-weight:500;margin-bottom:.2rem">Rapor Fotoğrafı Çek/Yükle</div>
       <div style="font-size:12px;color:var(--muted)">Tıkla veya sürükle bırak · Birden fazla fotoğraf seçebilirsiniz</div>
-      <input type="file" id="img-input" accept="image/*,application/pdf" multiple style="display:none" onchange="handleFileSelect(this)">
+      <input type="file" id="img-input" accept="image/*,application/pdf" multiple="multiple" style="display:none" onchange="handleFileSelect(this)">
     </div>
     <div id="img-preview" style="display:none;display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem"></div>
 
@@ -997,6 +991,23 @@ function updateNavProfile(name){
   const btn=document.getElementById('nb-profil');
   if(btn) btn.textContent='👤 '+name.split(' ')[0];
 }
+// Global drag-drop
+document.addEventListener('dragover', function(e){ e.preventDefault(); e.stopPropagation(); });
+document.addEventListener('drop', function(e){
+  e.preventDefault(); e.stopPropagation();
+  const files = Array.from(e.dataTransfer.files);
+  if(!files.length) return;
+  const uploadScreen = document.getElementById('screen-upload');
+  const aracScreen = document.getElementById('screen-arac-analiz');
+  if(uploadScreen && uploadScreen.classList.contains('active')){
+    if(files.length>1) setMultipleFiles(files);
+    else setSelectedFile(files[0]);
+    const zone=document.getElementById('pdf-drop-zone');
+    if(zone) zone.style.borderColor='var(--green)';
+  } else if(aracScreen && aracScreen.classList.contains('active')){
+    handleImgDrop(e);
+  }
+});
 window.addEventListener('load',()=>{
   const uid=localStorage.getItem('userId');
   const uname=localStorage.getItem('userName');
@@ -1063,6 +1074,23 @@ function updateNavProfile(name){
 }
 
 // Sayfa yüklenince oturumu kontrol et
+// Global drag-drop
+document.addEventListener('dragover', function(e){ e.preventDefault(); e.stopPropagation(); });
+document.addEventListener('drop', function(e){
+  e.preventDefault(); e.stopPropagation();
+  const files = Array.from(e.dataTransfer.files);
+  if(!files.length) return;
+  const uploadScreen = document.getElementById('screen-upload');
+  const aracScreen = document.getElementById('screen-arac-analiz');
+  if(uploadScreen && uploadScreen.classList.contains('active')){
+    if(files.length>1) setMultipleFiles(files);
+    else setSelectedFile(files[0]);
+    const zone=document.getElementById('pdf-drop-zone');
+    if(zone) zone.style.borderColor='var(--green)';
+  } else if(aracScreen && aracScreen.classList.contains('active')){
+    handleImgDrop(e);
+  }
+});
 window.addEventListener('load',()=>{
   const uid=localStorage.getItem('userId');
   const uname=localStorage.getItem('userName');
