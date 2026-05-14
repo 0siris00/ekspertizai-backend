@@ -102,6 +102,9 @@ import tempfile, os
 async def upload_and_analyze(
     background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
+    file1: Optional[UploadFile] = File(None),
+    file2: Optional[UploadFile] = File(None),
+    file3: Optional[UploadFile] = File(None),
     user_id: Optional[str] = Form(None)
 ):
     db = get_supabase()
@@ -112,10 +115,32 @@ async def upload_and_analyze(
         if user.data and user.data[0].get("free_analyses", 0) <= 0:
             raise HTTPException(status_code=402, detail="Analiz hakkı kalmadı")
 
-    # Dosyayı geçici olarak kaydet
-    suffix = os.path.splitext(file.filename)[1] if file.filename else ".pdf"
+    # Tüm dosyaları birleştir
+    all_files = [file] + [f for f in [file1, file2, file3] if f is not None]
+    
+    # İlk dosyayı ana dosya olarak kullan, diğerlerini metin olarak ekle
+    suffix = os.path.splitext(all_files[0].filename)[1] if all_files[0].filename else ".pdf"
+    content = await all_files[0].read()
+    
+    # Diğer dosyaların metinlerini birleştir
+    extra_texts = []
+    for extra_file in all_files[1:]:
+        try:
+            extra_content = await extra_file.read()
+            extra_suffix = os.path.splitext(extra_file.filename)[1] if extra_file.filename else ".jpg"
+            with tempfile.NamedTemporaryFile(delete=False, suffix=extra_suffix) as etmp:
+                etmp.write(extra_content)
+                etmp_path = etmp.name
+            from agents.agent1_reader import extract_text_from_pdf, extract_text_from_image
+            if extra_suffix.lower() == '.pdf':
+                extra_texts.append(extract_text_from_pdf(etmp_path))
+            else:
+                extra_texts.append(extract_text_from_image(etmp_path))
+            os.unlink(etmp_path)
+        except:
+            pass
+    
     with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
-        content = await file.read()
         tmp.write(content)
         tmp_path = tmp.name
 
