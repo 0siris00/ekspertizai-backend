@@ -72,46 +72,43 @@ def detect_categories(text: str) -> dict:
 
 def parse_vehicle_info(text: str) -> dict:
     info = {}
-    plaka = re.search(r'PLAKA\s*[:\s]+([A-Z0-9]{2,8})', text, re.IGNORECASE)
-    if plaka: info["plaka"] = plaka.group(1).strip()
-    # Metin içinden il/ilçe çıkar
-    for pattern in [r'(?:Konum|Şehir|İl|Bulunduğu İl)\s*[:\s]+([A-ZÇĞİÖŞÜa-zçğıöşü]+)', r'([A-ZÇĞİÖŞÜ][a-zçğıöşü]+)\s*[/,]\s*([A-ZÇĞİÖŞÜ][a-zçğıöşü]+)\s+ilanı']:
-        m = re.search(pattern, text, re.IGNORECASE)
-        if m: info["il"] = m.group(1).strip()[:30]; break
-    ilce_m = re.search(r"(?:Ilce|Semt|İlçe)[:\s]+([A-Za-z\s]+?)(?:\n|,|$)", text, re.IGNORECASE)
-    if ilce_m: info["ilce"] = ilce_m.group(1).strip()[:30]
-    # Sahibinden formatı: "İstanbul Büyükçekmece" gibi
-    sehir_m = re.search(r"(Istanbul|Ankara|Izmir|Bursa|Antalya|Adana|Konya|Mersin|Kocaeli|Samsun|Gaziantep|Balikesir|Denizli|Sakarya|Trabzon|Eskisehir|Kayseri)", text, re.IGNORECASE)
-    if sehir_m and not info.get("il"): info["il"] = sehir_m.group(1)
-    marka = re.search(r'MARKA\s*[:\s]+([A-ZÇĞİÖŞÜa-z\s\-]+?)(?:\n|MODEL)', text, re.IGNORECASE)
-    if marka: info["marka"] = marka.group(1).strip()
-    model = re.search(r'MODEL\s*[:\s]+([A-Za-z0-9\s\.\-]+?)(?:\n|ÜRETİM|YIL)', text, re.IGNORECASE)
-    if model: info["model"] = model.group(1).strip()
-    yil = re.search(r'(?:ÜRETİM YILI|MODEL YILI)[:\s]+(\d{4})', text, re.IGNORECASE)
-    if yil: info["yil"] = int(yil.group(1))
-    km = re.search(r'(\d{1,3}(?:\.\d{3})*|\d+)\s*[Kk][Mm]', text)
-    if km: info["km"] = int(km.group(1).replace(".", ""))
-    for yakit in ["Dizel","Benzin","LPG","Benzin/LPG","Hibrit","Elektrik"]:
-        if yakit.upper() in text.upper():
-            info["yakit"] = yakit
-            break
-    if "OTOMATİK" in text.upper(): info["vites"] = "Otomatik"
-    elif "MANUEL" in text.upper(): info["vites"] = "Manuel"
-    for firma in ["Dynobil","Otorapor","PilotGarage","Umran","Garantili Arabam","Dynomoss","Güney"]:
-        if firma.upper() in text.upper():
-            info["ekspertiz_firmasi"] = firma
-            break
+    plaka = re.search(r"PLAKA[:\s]+([A-Z0-9\s]{4,10})", text, re.IGNORECASE)
+    if plaka: info["plaka"] = plaka.group(1).strip().replace(" ","")
+    marka_m = re.search(r"(?:MARKA|Marka)[:\s]+([A-Za-z\s\-]+?)(?:\n|MODEL|Model)", text, re.IGNORECASE)
+    if marka_m: info["marka"] = marka_m.group(1).strip().upper()
+    model_m = re.search(r"(?:MODEL|Model)[:\s]+([A-Za-z0-9\s\-\.]+?)(?:\n|YIL|KM)", text, re.IGNORECASE)
+    if model_m: info["model"] = model_m.group(1).strip().upper()
+    yil_m = re.search(r"(?:YIL|Yil)[:\s]+(\d{4})", text, re.IGNORECASE)
+    if not yil_m: yil_m = re.search(r"\b(20[0-2][0-9]|19[89][0-9])\b", text)
+    if yil_m:
+        try: info["yil"] = int(yil_m.group(1))
+        except: pass
+    km_m = re.search(r"(?:KM|Kilometre)[:\s]*([0-9\.]+)", text, re.IGNORECASE)
+    if km_m:
+        try: info["km"] = int(km_m.group(1).replace(".","").replace(",",""))
+        except: pass
+    motor_m = re.search(r"(\d[\.,]\d+)\s*(?:litre|lt|L)\b", text, re.IGNORECASE)
+    if not motor_m: motor_m = re.search(r"(\d{3,4})\s*cc", text, re.IGNORECASE)
+    if motor_m: info["motor_hacmi"] = motor_m.group(1).strip()
+    beygir_m = re.search(r"(\d+)\s*(?:hp|ps|bg|HP|PS|BG|beygir)", text, re.IGNORECASE)
+    if beygir_m:
+        try: info["beygir"] = int(beygir_m.group(1))
+        except: pass
+    for yakit in ["Hibrit","Elektrik","Benzin","Dizel","LPG","CNG"]:
+        if re.search(yakit, text, re.IGNORECASE): info["yakit"] = yakit; break
+    for vites in ["Otomatik","Manuel","CVT","DSG"]:
+        if re.search(vites, text, re.IGNORECASE): info["vites"] = vites; break
+    for kasa in ["Sedan","Hatchback","SUV","Crossover","Cabrio","Coupe","Pickup","Minivan"]:
+        if re.search(kasa, text, re.IGNORECASE): info["kasa_tipi"] = kasa; break
+    il_m = re.search(r"(?:Konum|Sehir|Il)[:\s]+([A-Za-z\u00c0-\u024f]+)", text, re.IGNORECASE)
+    if il_m: info["il"] = il_m.group(1).strip()
+    ilce_m = re.search(r"(?:Ilce|Semt)[:\s]+([A-Za-z\u00c0-\u024f\s]+?)(?:\n|,|$)", text, re.IGNORECASE)
+    if ilce_m: info["ilce"] = ilce_m.group(1).strip()
+    for sehir in ["Istanbul","Ankara","Izmir","Bursa","Antalya","Adana","Konya","Mersin","Kocaeli","Balikesir"]:
+        if re.search(sehir, text, re.IGNORECASE) and not info.get("il"):
+            info["il"] = sehir; break
     return info
 
-async def run(file_path: str, file_type: str) -> dict:
-    if file_type == "pdf":
-        raw_text = extract_text_from_pdf(file_path)
-    else:
-        raw_text = extract_text_from_image(file_path)
-    vehicle_info = parse_vehicle_info(raw_text)
-    categories = detect_categories(raw_text)
-    masked_text = mask_personal_data(raw_text)
-    return {"raw_text": raw_text, "masked_text": masked_text, "vehicle_info": vehicle_info, "categories": categories}
 
 def parse_report_text(text: str) -> dict:
     """Metin girişinden rapor parse et — dosya gerektirmez"""
