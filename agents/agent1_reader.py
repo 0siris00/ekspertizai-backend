@@ -145,3 +145,29 @@ def parse_report_text(text: str) -> dict:
         "masked_text": text,
         "categories": categories
     }
+
+def detect_categories(text: str) -> dict:
+    text_lower = text.lower()
+    return {
+        'guvenlik': any(k in text_lower for k in ['fren','aks','rot','direksiyon','hava yastigi','emniyet']),
+        'mekanik': any(k in text_lower for k in ['motor','vites','sanziman','turbo','debriyaj','dinamometre']),
+        'sarf': any(k in text_lower for k in ['yag','filtre','bakim','antifriz','balata']),
+        'kaporta': any(k in text_lower for k in ['boya','kaporta','camurluk','kaput','bagaj','mikron','ezik']),
+        'idari': any(k in text_lower for k in ['plaka','ruhsat','sigorta','muayene','hasar','km sorgu'])
+    }
+
+def mask_personal_data(text: str) -> str:
+    import re
+    text = re.sub(r'\b\d{10,11}\b', '***', text)
+    text = re.sub(r'\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b', '***@***.***', text, flags=re.IGNORECASE)
+    return text
+
+async def run(file_path: str, file_type: str) -> dict:
+    if file_type == 'pdf':
+        raw_text = extract_text_from_pdf(file_path)
+    else:
+        raw_text = extract_text_from_image(file_path)
+    vehicle_info = parse_vehicle_info(raw_text)
+    categories = detect_categories(raw_text)
+    masked_text = mask_personal_data(raw_text)
+    return {'raw_text': raw_text, 'masked_text': masked_text, 'vehicle_info': vehicle_info, 'categories': categories}
