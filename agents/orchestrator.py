@@ -35,6 +35,20 @@ async def analyze_report(file_path: str, file_type: str, user_id: str, supabase_
         except Exception as ie:
             print(f"İlan kayıt hatası: {ie}")
         
+        # vehicleInfo eksik alanları ilan agent ile tamamla
+        vi = final_report.get("vehicleInfo", {})
+        if not vi.get("marka") or not vi.get("model"):
+            try:
+                from agents.ilan_agent import extract_ilan_info
+                ilan_info = await extract_ilan_info(file_path, file_type)
+                for key in ["marka","model","km","motor_hacmi","beygir","il","ilce","yil","yakit","vites","kasa_tipi"]:
+                    if ilan_info.get(key) and not vi.get(key):
+                        vi[key] = ilan_info[key]
+                final_report["vehicleInfo"] = vi
+                print(f"[{report_id}] İlan agent ile tamamlandı: {vi.get('marka')} {vi.get('model')}")
+            except Exception as ie:
+                print(f"[{report_id}] İlan agent hatası: {ie}")
+        
         return {"success": True, "data": final_report}
     except Exception as e:
         print(f"[{report_id}] Hata: {str(e)}")
