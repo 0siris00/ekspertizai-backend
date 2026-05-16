@@ -775,7 +775,12 @@ function showAracResult(r){
     var yil = vi.yil||2015;
     var kronikEl = document.getElementById('kronik-loading');
     if(marka && model){
-      fetch('/api/v1/kronik?marka='+encodeURIComponent(marka)+'&model='+encodeURIComponent(model)+'&yil='+yil)
+      var motorHacmi = vi.motor_hacmi || r.vehicleInfo?.motor_hacmi || '';
+      var beygir = vi.beygir || r.vehicleInfo?.beygir || 0;
+      var kronikUrl = '/api/v1/kronik?marka='+encodeURIComponent(marka)+'&model='+encodeURIComponent(model)+'&yil='+yil;
+      if(motorHacmi) kronikUrl += '&motor_hacmi='+encodeURIComponent(motorHacmi);
+      if(beygir) kronikUrl += '&beygir='+beygir;
+      fetch(kronikUrl)
         .then(function(res){return res.json();})
         .then(function(d){
           var el = document.getElementById('kronik-loading');
