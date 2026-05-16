@@ -28,6 +28,13 @@ async def analyze_report(file_path: str, file_type: str, user_id: str, supabase_
             await notify_admin_review(report_id, final_report["adminReview"]["questions"], vehicle_info)
         await notify_new_report(report_id, vehicle_info, final_report["verdict"])
         print(f"[{report_id}] Tamamlandı. Verdict: {final_report['verdict']}")
+        # İlan bilgilerini kaydet (araç analizi için)
+        try:
+            from agents.ilan_agent import save_ilan_to_db
+            await save_ilan_to_db(vehicle_info, report_id, user_id)
+        except Exception as ie:
+            print(f"İlan kayıt hatası: {ie}")
+        
         return {"success": True, "data": final_report}
     except Exception as e:
         print(f"[{report_id}] Hata: {str(e)}")
